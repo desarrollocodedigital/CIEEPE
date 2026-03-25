@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Políticas de Inclusión Educativa | CIEEPE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            background-color: #374151;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 antialiased">
+    <nav class="fixed w-full z-50 py-2 bg-white text-blue-900 shadow-md">
+        <div class="container mx-auto px-4 md:px-8 flex justify-between items-center">
+            <a href="index.html"><img src="./img/logo.png" alt="CIEEPE" class="h-12 md:h-14"></a>
+            <div class="hidden md:flex space-x-6">
+                <a href="index.html#inicio" class="text-sm font-medium text-gray-700 hover:text-blue-600">Inicio</a>
+                <a href="proyectos.php" class="text-sm font-medium text-blue-600">Proyectos</a>
+                <a href="investigadores.php" class="text-sm font-medium text-gray-700 hover:text-blue-600">Equipo</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="relative h-[50vh] min-h-[400px] w-full flex items-center justify-center">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=1600"
+                class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-blue-900/40"></div>
+        </div>
+        <div class="container mx-auto px-4 relative z-10 text-white pt-20">
+            <div class="max-w-4xl">
+                <div
+                    class="inline-flex items-center space-x-2 bg-blue-800/50 px-3 py-1 rounded-full text-xs uppercase mb-6">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span><span>En Puerta</span>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold mb-6">Políticas de inclusión educativa en Sinaloa</h1>
+                <p class="text-lg text-blue-100 max-w-2xl">Análisis desde la perspectiva docente.</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col lg:flex-row gap-12">
+                <div class="lg:w-2/3 space-y-12">
+                    <section>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">Descripción</h3>
+                        <p class="text-gray-600">Examina las políticas públicas y normativas relacionadas con la
+                            educación, su diseño, implementación y resultados.</p>
+                    </section>
+                    <section class="bg-blue-50/50 rounded-2xl p-8 border border-blue-100">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-6">Equipo</h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white rounded-xl p-4 border border-blue-200">
+                                <p class="text-xs text-blue-600 font-semibold uppercase">Responsable</p>
+                                <h4 class="font-bold text-lg">Christian Marino Mendoza Gaxiola</h4>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 border border-gray-100">
+                                <p class="text-xs text-gray-500 font-semibold uppercase mb-2">Internos</p>
+                                <p class="text-sm">Tania González Lozano</p>
+                            </div>
+                            <div class="bg-white rounded-xl p-4 border border-gray-100 md:col-span-2">
+                                <p class="text-xs text-gray-500 font-semibold uppercase mb-2">Externos</p>
+                                <p class="text-sm">Karin Yovana Quijada Lovatón, Rodrigo López Zavala</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                <div class="lg:w-1/3">
+                    <div class="sticky top-24 space-y-6">
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-t-4 border-blue-600">
+                            <h4 class="font-bold text-gray-900 mb-4">Detalles</h4>
+                            <ul class="space-y-3 text-sm">
+                                <li class="flex justify-between"><span class="text-gray-500">Línea:</span><span
+                                        class="font-semibold text-right">Diseño y Evaluación de Normativas</span></li>
+                                <li class="flex justify-between"><span class="text-gray-500">Duración:</span><span
+                                        class="font-semibold">--</span></li>
+                                <li class="flex justify-between"><span class="text-gray-500">Financiamiento:</span><span
+                                        class="font-semibold">--</span></li>
+                                <li class="flex justify-between"><span class="text-gray-500">Estado:</span><span
+                                        class="font-semibold text-amber-600">En Puerta</span></li>
+                            </ul>
+                            <div class="tooltip mt-6">
+                                <button disabled
+                                    class="w-full bg-gray-300 text-gray-500 font-bold py-3 rounded-lg cursor-not-allowed flex items-center justify-center">
+                                    <i data-lucide="download" class="w-4 h-4 mr-2"></i> Descargar PDF
+                                </button>
+                                <span class="tooltip-text">Sin protocolo para descargar</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-500 text-sm">&copy; <span id="year"></span> CIEEPE</p>
+        </div>
+    </footer>
+    <script>lucide.createIcons(); document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+
+</html>

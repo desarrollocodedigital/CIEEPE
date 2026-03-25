@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Rodrigo López Zavala | CIEEPE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-white text-gray-900 antialiased">
+
+    <!-- Navegación -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 py-2 bg-white text-blue-900 shadow-md">
+        <div class="container mx-auto px-4 md:px-8 flex justify-between items-center">
+            <a href="index.html#inicio" id="nav-logo" class="flex items-center">
+                <img src="./img/logo.png" alt="CIEEPE ENEES Logo" class="h-12 w-auto md:h-14">
+            </a>
+            <div class="hidden md:flex space-x-6 lg:space-x-8">
+                <a href="index.html#inicio"
+                    class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Inicio</a>
+                <a href="index.html#nosotros"
+                    class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Nosotros</a>
+                <a href="index.html#investigacion"
+                    class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Líneas</a>
+                <a href="proyectos.php"
+                    class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Proyectos</a>
+                <a href="investigadores.php"
+                    class="nav-link text-sm font-medium text-blue-600 transition-colors">Equipo</a>
+                <a href="index.html#contacto"
+                    class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Contacto</a>
+            </div>
+            <button id="mobile-menu-btn" class="md:hidden focus:outline-none text-gray-700">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+        <div id="mobile-menu"
+            class="hidden md:hidden bg-white shadow-lg absolute top-full left-0 w-full py-4 px-6 flex flex-col space-y-4 text-gray-800">
+            <a href="index.html#inicio" class="font-medium">Inicio</a>
+            <a href="index.html#nosotros" class="font-medium">Nosotros</a>
+            <a href="index.html#investigacion" class="font-medium">Líneas de Investigación</a>
+            <a href="proyectos.php" class="font-medium">Proyectos</a>
+            <a href="investigadores.php" class="font-medium text-blue-600">Equipo</a>
+            <a href="index.html#contacto" class="font-medium">Contacto</a>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="pt-32 pb-20">
+        <div class="container mx-auto px-4 md:px-8">
+
+            <!-- Botón Volver -->
+            <div class="mb-10">
+                <a href="investigadores.php"
+                    class="inline-flex items-center text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors border border-gray-200 rounded-lg px-4 py-2 hover:bg-gray-50">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Volver al Directorio
+                </a>
+            </div>
+
+            <div class="grid md:grid-cols-12 gap-12">
+
+                <!-- Columna Izquierda -->
+                <div class="md:col-span-4 lg:col-span-3">
+                    <div>
+                        <div class="bg-gray-100 rounded-lg overflow-hidden mb-6 shadow-sm aspect-square md:aspect-auto">
+                            <img src="./img/investigadores/Rodrigo López Zavala.jpeg" alt="Dr. Rodrigo López Zavala"
+                                class="w-full h-full object-cover transition-all duration-500"
+                                onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-64 bg-gradient-to-br from-sky-100 to-blue-200 flex items-center justify-center\'><svg xmlns=\'http://www.w3.org/2000/svg\' class=\'w-24 h-24 text-blue-300\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'1\'><circle cx=\'12\' cy=\'8\' r=\'5\'/><path d=\'M3 21v-2a9 9 0 0 1 18 0v2\'/></svg></div>'">
+                        </div>
+
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Institución
+                                </h4>
+                                <p class="text-sm text-gray-600">Universidad Autónoma de Sinaloa (UAS)<br>Facultad de
+                                    Ciencias de la Educación</p>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Cargo Actual
+                                </h4>
+                                <p class="text-sm text-gray-600">Subsecretario de Educación Media Superior y Superior —
+                                    SEPyC Sinaloa</p>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">SNI</h4>
+                                <p class="text-sm font-semibold text-blue-700">Sistema Nacional de Investigadores —
+                                    Nivel II</p>
+                            </div>
+
+                            <div class="flex space-x-4 pt-2">
+                                <a href="#" class="text-gray-400 hover:text-blue-700 transition-colors"
+                                    title="LinkedIn">
+                                    <i data-lucide="linkedin" class="w-5 h-5"></i>
+                                </a>
+                                <a href="#"
+                                    class="text-gray-400 hover:text-black transition-colors flex items-center font-medium text-sm hover:underline">
+                                    <i data-lucide="file-text" class="w-5 h-5 mr-1"></i> ORCID
+                                </a>
+                                <a href="#"
+                                    class="text-gray-400 hover:text-blue-600 transition-colors flex items-center font-medium text-sm hover:underline">
+                                    <i data-lucide="search" class="w-5 h-5 mr-1"></i> G Scholar
+                                </a>
+                            </div>
+
+                            <div class="pt-4">
+                                <a href="#"
+                                    class="flex items-center justify-between w-full bg-black text-white px-4 py-3 rounded text-sm font-bold hover:bg-gray-800 transition-colors">
+                                    <span>Descargar Currículum</span>
+                                    <i data-lucide="download" class="w-4 h-4"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha -->
+                <div class="md:col-span-8 lg:col-span-9">
+
+                    <div class="mb-12" id="profile-header">
+                        <span
+                            class="inline-block bg-blue-600 text-white text-xs font-bold px-2 py-1 mb-4 uppercase tracking-wider">Formación
+                            Docente, Inclusión y Evaluación Educativa</span>
+                        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2">Rodrigo López Zavala</h1>
+                        <p class="text-xl text-gray-500 font-light">Doctorado | Posdoctorado · Profesor-Investigador
+                            Titular "C"</p>
+                    </div>
+
+                    <!-- Semblanza -->
+                    <div class="mb-16">
+                        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6 flex items-center">
+                            <span class="mr-2">01 //</span> Semblanza Profesional
+                        </h3>
+                        <div class="prose max-w-none text-gray-600 leading-relaxed text-lg grid md:grid-cols-2 gap-8">
+                            <p>
+                                Doctor en Educación con Posdoctorado en la Universidad de Valencia, España. Maestro en
+                                Ciencias de la Educación, Licenciado en Psicología Educativa y egresado de la Escuela
+                                Normal de Sinaloa. Profesor-investigador titular "C" de la Facultad de Ciencias de la
+                                Educación de la Universidad Autónoma de Sinaloa con 55 años de trayectoria docente en
+                                todos los niveles educativos.
+                            </p>
+                            <p>
+                                Integrante del Consejo Mexicano de Investigación Educativa (COMIE) y miembro fundador de
+                                la Red Nacional de Investigadores en Educación y Valores (REDUVAL). Miembro del Sistema
+                                Nacional de Investigadores <strong>Nivel II</strong>. Ha publicado <strong>28
+                                    libros</strong>, <strong>59 artículos</strong> en revistas científicas y ha dirigido
+                                <strong>58 tesis</strong> en doctorado, maestría y licenciatura. Desde noviembre de 2021
+                                es Subsecretario de Educación Media Superior y Superior de la SEPyC, Gobierno de
+                                Sinaloa.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Líneas de Investigación -->
+                    <div class="mb-16">
+                        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-8 flex items-center">
+                            <span class="mr-2">02 //</span> Líneas de Investigación
+                        </h3>
+                        <div class="space-y-8">
+                            <div class="group flex gap-6 items-baseline border-b border-gray-100 pb-8">
+                                <span class="text-blue-600 font-bold text-lg w-16 flex-shrink-0">01</span>
+                                <div>
+                                    <h4
+                                        class="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                        Ética, Política y Cultura Docente</h4>
+                                    <p class="text-sm text-gray-500">Ética profesional en la formación universitaria y
+                                        cultura de la profesión docente</p>
+                                </div>
+                            </div>
+                            <div class="group flex gap-6 items-baseline border-b border-gray-100 pb-8">
+                                <span class="text-blue-600 font-bold text-lg w-16 flex-shrink-0">02</span>
+                                <div>
+                                    <h4
+                                        class="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                        Educación y Valores</h4>
+                                    <p class="text-sm text-gray-500">Valores pedagógicos, intelectuales y morales en la
+                                        práctica educativa; estado del conocimiento</p>
+                                </div>
+                            </div>
+                            <div class="group flex gap-6 items-baseline border-b border-gray-100 pb-8">
+                                <span class="text-blue-600 font-bold text-lg w-16 flex-shrink-0">03</span>
+                                <div>
+                                    <h4
+                                        class="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                        Política Educativa y Cambio Educativo</h4>
+                                    <p class="text-sm text-gray-500">Seminario de ética, cultura docente y política para
+                                        el cambio educativo</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Publicaciones -->
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-8 flex items-center">
+                            <span class="mr-2">03 //</span> Publicaciones Destacadas
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="border-l-2 border-blue-600 pl-4">
+                                <p class="text-sm font-bold text-gray-900"><em>Educación y valores en México. Estado del
+                                        conocimiento</em></p>
+                                <p class="text-xs text-gray-500 mt-1">Libro — Autor / Coordinador (más reciente)</p>
+                            </div>
+                            <div class="border-l-2 border-gray-200 pl-4">
+                                <p class="text-sm font-bold text-gray-900">28 libros publicados como autor, coautor y
+                                    coordinador</p>
+                                <p class="text-xs text-gray-500 mt-1">Trayectoria editorial acumulada</p>
+                            </div>
+                            <div class="border-l-2 border-gray-200 pl-4">
+                                <p class="text-sm font-bold text-gray-900">59 artículos en revistas científicas y de
+                                    divulgación</p>
+                                <p class="text-xs text-gray-500 mt-1">Publicaciones periódicas — México, España, Japón,
+                                    Cuba, Argentina, Colombia, Chile, Brasil</p>
+                            </div>
+                            <div class="border-l-2 border-gray-200 pl-4">
+                                <p class="text-sm font-bold text-gray-900">58 tesis dirigidas en doctorado, maestría y
+                                    licenciatura</p>
+                                <p class="text-xs text-gray-500 mt-1">Formación de investigadores</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 border-t border-gray-800">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <div class="col-span-1 md:col-span-2">
+                    <h3 class="text-2xl font-bold mb-4">CIEEPE | ENEES</h3>
+                    <p class="text-gray-400 max-w-sm mb-6">Centro de Investigación de Educación Especial y Políticas
+                        Educativas.</p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-200">Menú</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-gray-400 hover:text-white">Inicio</a></li>
+                        <li><a href="investigadores.php" class="text-gray-400 hover:text-white">Equipo</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
+                <p>&copy; <span id="year"></span> CIEEPE</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+        document.getElementById('year').textContent = new Date().getFullYear();
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        let isMenuOpen = false;
+        mobileMenuBtn.addEventListener('click', () => {
+            isMenuOpen = !isMenuOpen;
+            mobileMenu.classList.toggle('hidden', !isMenuOpen);
+        });
+    </script>
+</body>
+
+</html>

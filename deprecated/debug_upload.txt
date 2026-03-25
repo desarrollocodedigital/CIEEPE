@@ -1,0 +1,130 @@
+ACTION: edit_news
+FILES: Array
+(
+    [imagen_portada] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+    [nueva_galeria] => Array
+        (
+            [name] => Array
+                (
+                    [0] => 60ee070a6dbf4837f80acd7a_crea-oficinas-renta-polanco-0005.jpg
+                    [1] => Cuzco-18.jpg
+                )
+
+            [full_path] => Array
+                (
+                    [0] => 60ee070a6dbf4837f80acd7a_crea-oficinas-renta-polanco-0005.jpg
+                    [1] => Cuzco-18.jpg
+                )
+
+            [type] => Array
+                (
+                    [0] => image/jpeg
+                    [1] => image/jpeg
+                )
+
+            [tmp_name] => Array
+                (
+                    [0] => C:\xampp\tmp\phpC6B5.tmp
+                    [1] => C:\xampp\tmp\phpC6B6.tmp
+                )
+
+            [error] => Array
+                (
+                    [0] => 0
+                    [1] => 0
+                )
+
+            [size] => Array
+                (
+                    [0] => 186343
+                    [1] => 155857
+                )
+
+        )
+
+)
+
+POST: Array
+(
+    [action] => edit_news
+    [id] => 3
+    [titulo] => El pepe
+    [fecha_publicacion] => 2026-03-25T18:54
+    [descripcion_corta] => asdasdasdasdasd
+    [descripcion_larga] => asdasdasdasdasdasdasdasdas
+)
+
+ACTION: edit_news
+FILES: Array
+(
+    [imagen_portada] => Array
+        (
+            [name] => 
+            [full_path] => 
+            [type] => 
+            [tmp_name] => 
+            [error] => 4
+            [size] => 0
+        )
+
+    [nueva_galeria] => Array
+        (
+            [name] => Array
+                (
+                    [0] => 60ee070a6dbf4837f80acd7a_crea-oficinas-renta-polanco-0005.jpg
+                    [1] => Cuzco-18.jpg
+                )
+
+            [full_path] => Array
+                (
+                    [0] => 60ee070a6dbf4837f80acd7a_crea-oficinas-renta-polanco-0005.jpg
+                    [1] => Cuzco-18.jpg
+                )
+
+            [type] => Array
+                (
+                    [0] => image/jpeg
+                    [1] => image/jpeg
+                )
+
+            [tmp_name] => Array
+                (
+                    [0] => C:\xampp\tmp\php82EE.tmp
+                    [1] => C:\xampp\tmp\php82EF.tmp
+                )
+
+            [error] => Array
+                (
+                    [0] => 0
+                    [1] => 0
+                )
+
+            [size] => Array
+                (
+                    [0] => 186343
+                    [1] => 155857
+                )
+
+        )
+
+)
+
+POST: Array
+(
+    [action] => edit_news
+    [id] => 1
+    [titulo] => Inauguración de nuevas oficinas del CIEEPE
+    [fecha_publicacion] => 2026-03-25T11:09
+    [descripcion_corta] => El CIEEPE estrena nuevo espacio para fortalecer la investigación educativa en Culiacán.
+    [descripcion_larga] => En un evento presidido por autoridades académicas, se llevó a cabo el corte de listón de las nuevas instalaciones que albergarán a más de 20 investigadores especializados en educación especial. Este espacio cuenta con tecnología de punta y áreas de colaboración diseñadas para potenciar la producción científica.
+)
+

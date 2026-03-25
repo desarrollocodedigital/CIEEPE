@@ -1,0 +1,718 @@
+Request Start: 2026-02-17 21:51:56
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "title": "MSQ714",
+          "can_fetch_raw_content": "true",
+          "snippets": [
+            {
+              "snippet": "No sni...
+Request Start: 2026-02-17 21:53:20
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "title": "MSQ714",
+          "snippets": [
+            {
+              "snipp...
+Request Start: 2026-02-17 21:54:03
+Search Response (200): {
+  "results": [
+    {
+      "id": "e89219b570672f501410b5915c1c716d",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/e89219b570672f501410b5915c1c716d",
+        "id": "e89219b570672f501410b5915c1c716d",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "title": "tesis 1",
+          "snippets": [
+            {
+              "snippet_status":...
+Request Start: 2026-02-17 21:56:11
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "snippets": [
+            {
+              "snippet_status": "NO_SNIPPET_AVAILABLE",
+              "snippet": "No snippet is availabl...
+Request Start: 2026-02-17 21:57:22
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "snippets": [
+            {
+              "snippet": "No snippet is available for this page.",
+              "snippet_status": "NO_S...
+Request Start: 2026-02-17 21:58:31
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "title": "MSQ714",
+          "snippets": [
+            {
+              "snippet": "No snippet is available for this page.",
+        ...
+Request Start: 2026-02-17 21:59:00
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "title": "MSQ714",
+          "can_fetch_raw_content": "true",
+          "snippets": [
+            {
+              "snippet": "... \u...
+Request Start: 2026-02-17 22:03:43
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "title": "MSQ714",
+          "can_fetch_raw_content": "true",
+          "snip...
+Request Start: 2026-02-17 22:03:57
+Search Response (200): {
+  "attributionToken": "hgL0BQEKDAi_r9PMBhCZ4dWbAxIkNmE1OGRkNTctMDAwMC0yMTllLTg0N2ItMTRjMTRlZjU0ODg0IgdHRU5FUklDKjS2t4wtwvCeFdSynRWOvp0VmNa3LZD3sjCb1rctjpHJMOmr2DeugJM39t3xN6_G8jeVksUwMAFSjgFwcm9qZWN0cy82MDMyMDU1NzQzMDYvbG9jYXRpb25zL2dsb2JhbC9jb2xsZWN0aW9ucy9kZWZhdWx0X2NvbGxlY3Rpb24vZGF0YVN0b3Jlcy90ZXNpcy1jaWVlcGUtZGF0YV8xNzcxMzE3ODQyMDQ1L3NlcnZpbmdDb25maWdzL2RlZmF1bHRfc2VhcmNo",
+  "guidedSearchResult": {},
+  "summary": {
+    "summaryText": "No se encontraron resultados. Intenta reformular la b...
+Request Start: 2026-02-17 22:33:14
+Search Response (200): {
+  "attributionToken": "hQL0BAEKCwidvdPMBhDowqR3EiQ2YTRmMmVjZC0wMDAwLTIxNjYtOWI5Mi01ODI0MjliNzZjYWMiB0dFTkVSSUMqNJWSxTCY1rctwvCeFdSynRWOvp0Vm9a3LZD3sjC3t4wtjpHJMK6Akzfpq9g39t3xN6_G8jcwAVKOAXByb2plY3RzLzYwMzIwNTU3NDMwNi9sb2NhdGlvbnMvZ2xvYmFsL2NvbGxlY3Rpb25zL2RlZmF1bHRfY29sbGVjdGlvbi9kYXRhU3RvcmVzL3Rlc2lzLWNpZWVwZS1kYXRhXzE3NzEzMTc4NDIwNDUvc2VydmluZ0NvbmZpZ3MvZGVmYXVsdF9zZWFyY2g",
+  "guidedSearchResult": {},
+  "summary": {
+    "summaryText": "No se encontraron resultados. Intenta reformular la b�...
+Request Start: 2026-02-17 22:33:41
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "snippets": [
+            {
+      ...
+Request Start: 2026-02-17 22:36:05
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "snippets": [
+            {
+              "snippet_status": "NO_SNIPPET_AVAILABLE",
+     ...
+Request Start: 2026-02-17 22:36:50
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "title": "MSQ714",
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "can_fetch_raw_content": "true",
+          "snip...
+Request Start: 2026-02-17 22:38:17
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "snippets": [
+            {
+              "snippet_status": "SUCCESS",
+              "snippet": "... que debe haber en el colegio. T...
+Request Start: 2026-02-17 22:39:13
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "title": "MSQ714",
+          "snippets": [
+            {
+              "snippet_status": "SUCCESS",
+              "snippet": "P á g...
+Request Start: 2026-02-17 22:44:08
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "snippets": [
+            {
+              "snippet": "... \u003cb\u003etesis\...
+Request Start: 2026-02-17 22:50:59
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "title": "MSQ714",
+          "snippets": [
+            {
+              "snippet_status": ...
+Request Start: 2026-02-17 22:51:36
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "snippets": [
+            {
+              "snippet": "... alumnos, incluyendo aquellos ... \u003cb\u003eun tema\u003c/b\u003e críti...
+Request Start: 2026-02-17 22:52:53
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "title": "MSQ714",
+          "snippets": [
+            {
+              "snipp...
+Request Start: 2026-02-18 12:06:16
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "title": "MSQ714",
+          "can_fetch_raw_content": "true",
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "snip...
+Request Start: 2026-02-18 12:12:07
+Search Response (200): {
+  "results": [
+    {
+      "id": "e89219b570672f501410b5915c1c716d",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/e89219b570672f501410b5915c1c716d",
+        "id": "e89219b570672f501410b5915c1c716d",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/tesis 1.pdf",
+          "title": "tesis 1",
+          "snippets": [
+            {
+              "sni...
+Request Start: 2026-02-18 12:14:27
+Search Response (200): {
+  "results": [
+    {
+      "id": "e89219b570672f501410b5915c1c716d",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/e89219b570672f501410b5915c1c716d",
+        "id": "e89219b570672f501410b5915c1c716d",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "snippets": [
+            {
+              "snippet_status": "NO_SNIPPET_AVAILABLE",
+     ...
+Request Start: 2026-02-18 12:14:55
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "snippets": [
+            {
+              "snippet": "... \u003cb\u003einclus...
+Request Start: 2026-02-18 12:16:03
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "title": "MSQ714",
+          "snip...
+Request Start: 2026-02-18 12:17:00
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "can_fetch_raw_content": "true",
+          "title": "MSQ714",
+          "snip...
+Request Start: 2026-02-19 09:31:59
+Search Response (200): {
+  "attributionToken": "hgL0BQEKDAiCldvMBhC-gqbSAhIkNjk5NzlmYTktMDAwMC0yNjM0LThmMzgtMTQyMjNiYzA5NGZlIgdHRU5FUklDKjSVksUwmNa3LY6-nRXUsp0VwvCeFZvWty2Q97IwtreMLa6Akzfpq9g3jpHJMPbd8TevxvI3MAFSjgFwcm9qZWN0cy82MDMyMDU1NzQzMDYvbG9jYXRpb25zL2dsb2JhbC9jb2xsZWN0aW9ucy9kZWZhdWx0X2NvbGxlY3Rpb24vZGF0YVN0b3Jlcy90ZXNpcy1jaWVlcGUtZGF0YV8xNzcxMzE3ODQyMDQ1L3NlcnZpbmdDb25maWdzL2RlZmF1bHRfc2VhcmNo",
+  "guidedSearchResult": {},
+  "summary": {
+    "summaryText": "No se encontraron resultados. Intenta reformular la b...
+Request Start: 2026-02-19 09:32:14
+Search Response (200): {
+  "attributionToken": "hgL0BQEKDAiRldvMBhCh6ZCDAhIkNmE3Zjk2YmYtMDAwMC0yYTg4LTk0ZTItNTgyNDI5YWVmZmQ4IgdHRU5FUklDKjSVksUwtreMLcLwnhXUsp0Vjr6dFZzWty2f1rctkPeyMK6Akzf23fE36avYN46RyTCvxvI3MAFSjgFwcm9qZWN0cy82MDMyMDU1NzQzMDYvbG9jYXRpb25zL2dsb2JhbC9jb2xsZWN0aW9ucy9kZWZhdWx0X2NvbGxlY3Rpb24vZGF0YVN0b3Jlcy90ZXNpcy1jaWVlcGUtZGF0YV8xNzcxMzE3ODQyMDQ1L3NlcnZpbmdDb25maWdzL2RlZmF1bHRfc2VhcmNo",
+  "guidedSearchResult": {},
+  "summary": {
+    "summaryText": "No se encontraron resultados. Intenta reformular la b...
+Request Start: 2026-02-19 09:32:47
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "can_fetch_raw_content": "true",
+          "snippets": [
+            {
+      ...
+Request Start: 2026-02-19 09:33:00
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "snippets": [
+            {
+      ...
+Request Start: 2026-02-19 09:34:25
+Search Response (200): {
+  "attributionToken": "ggL0AQEKDAiTltvMBhDVjM2lAxIkNjk5N2NkOWMtMDAwMC0yNjM0LThmMzgtMTQyMjNiYzA5NGZlIgdHRU5FUklDKjCc1rctt7eMLdSynRXC8J4Vn9a3LZWSxTCQ97IwroCTN-mr2Df23fE3r8byN46RyTAwAVKOAXByb2plY3RzLzYwMzIwNTU3NDMwNi9sb2NhdGlvbnMvZ2xvYmFsL2NvbGxlY3Rpb25zL2RlZmF1bHRfY29sbGVjdGlvbi9kYXRhU3RvcmVzL3Rlc2lzLWNpZWVwZS1kYXRhXzE3NzEzMTc4NDIwNDUvc2VydmluZ0NvbmZpZ3MvZGVmYXVsdF9zZWFyY2g",
+  "guidedSearchResult": {},
+  "summary": {
+    "summaryText": "No se encontraron resultados. Intenta reformular la búsqu...
+Request Start: 2026-02-19 09:35:29
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "snippets": [
+            {
+              "snippet": "... \u003cb\u003edía\u003c/b\u003e a \u003cb\u003edía\u003c/b\u003e.Agradezc...
+Request Start: 2026-02-19 09:35:41
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "title": "MSQ714",
+          "snippets": [
+            {
+              "snippet_status": "NO_SNIPPET_AVAILABLE",
+              "snip...
+Request Start: 2026-02-19 09:37:06
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "title": "MSQ714",
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "snip...
+Request Start: 2026-02-19 09:37:13
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "snippets": [
+            {
+              "snippet": "No snippet is available for this pa...
+Request Start: 2026-02-19 09:38:24
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "can_fetch_raw_content": "true",
+          "snippets": [
+            {
+      ...
+Request Start: 2026-02-19 09:38:35
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "snippets": [
+            {
+              "snippet_status": "SUCCESS",
+              "sni...
+Request Start: 2026-02-19 09:39:13
+Search Response (200): {
+  "attributionToken": "hgL0BQEKDAizmNvMBhC-9MeuAhIkNjljY2JmNzktMDAwMC0yNTJkLTgyNzEtMzRjN2U5MWZiMzRiIgdHRU5FUklDKjSVksUwt7eMLcLwnhXUsp0Vjr6dFZzWty2f1rctkPeyMK6Akzfpq9g39t3xN6_G8jeOkckwMAFSjgFwcm9qZWN0cy82MDMyMDU1NzQzMDYvbG9jYXRpb25zL2dsb2JhbC9jb2xsZWN0aW9ucy9kZWZhdWx0X2NvbGxlY3Rpb24vZGF0YVN0b3Jlcy90ZXNpcy1jaWVlcGUtZGF0YV8xNzcxMzE3ODQyMDQ1L3NlcnZpbmdDb25maWdzL2RlZmF1bHRfc2VhcmNo",
+  "guidedSearchResult": {},
+  "summary": {
+    "summaryText": "No se encontraron resultados. Intenta reformular la b...
+Request Start: 2026-02-19 09:39:25
+Search Response (200): {
+  "attributionToken": "hgL0BQEKDAjAmNvMBhDkq8KNAhIkNmE2NmU4ZDEtMDAwMC0yNjcyLTliZDEtMTRjMTRlZjE4YjY4IgdHRU5FUklDKjSVksUwt7eMLcLwnhXUsp0Vjr6dFZ_Wty2Q97IwnNa3LY6RyTCugJM36avYN_bd8TevxvI3MAFSjgFwcm9qZWN0cy82MDMyMDU1NzQzMDYvbG9jYXRpb25zL2dsb2JhbC9jb2xsZWN0aW9ucy9kZWZhdWx0X2NvbGxlY3Rpb24vZGF0YVN0b3Jlcy90ZXNpcy1jaWVlcGUtZGF0YV8xNzcxMzE3ODQyMDQ1L3NlcnZpbmdDb25maWdzL2RlZmF1bHRfc2VhcmNo",
+  "guidedSearchResult": {},
+  "summary": {
+    "summaryText": "No se encontraron resultados. Intenta reformular la b...
+Request Start: 2026-02-19 09:39:31
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "title": "MSQ714",
+          "snippets": [
+            {
+              "snipp...
+Request Start: 2026-02-19 09:39:49
+Search Response (200): {
+  "results": [
+    {
+      "id": "e89219b570672f501410b5915c1c716d",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/e89219b570672f501410b5915c1c716d",
+        "id": "e89219b570672f501410b5915c1c716d",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/tesis 1.pdf",
+          "can_fetch_raw_content": "true",
+          "snippets": [
+            {
+     ...
+Request Start: 2026-02-19 09:40:47
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "title": "MSQ714",
+          "can_fetch_raw_content": "true",
+          "snip...
+Request Start: 2026-02-19 09:41:22
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "title": "MSQ714",
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "can_fetch_raw_content": "true",
+          "snip...
+Request Start: 2026-02-19 09:59:14
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "snippets": [
+            {
+              "snippet": "... \u003cb\u003edía\u...
+Request Start: 2026-02-19 09:59:35
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "snippets": [
+            {
+              "snippet": "... \u003cb\u003einclusión\u003c/b...
+Request Start: 2026-02-19 10:04:38
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "title": "MSQ714",
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "snippets": [
+            {
+              "snipp...
+Request Start: 2026-02-19 10:05:04
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "title": "MSQ714",
+          "snippets": [
+            {
+              "snippet_status": "SUCCESS",
+              "snippet": "... pe...
+Request Start: 2026-02-19 10:05:36
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "snippets": [
+            {
+              "snippet_status": "SUCCESS",
+              "snippet": "... \u003cb\u003eQUITO\u003c/b\u003...
+Request Start: 2026-02-19 10:06:02
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "title": "MSQ714",
+          "snippets": [
+            {
+              "snippet_status": ...
+Request Start: 2026-02-19 10:19:31
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "title": "MSQ714",
+          "snippets": [
+            {
+              "snippet_status": ...
+Request Start: 2026-02-19 10:23:47
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "can_fetch_raw_content": "true",
+          "snippets": [
+            {
+              "snippet_status": "SUCCESS",
+              "sni...
+Request Start: 2026-02-19 10:23:59
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "snippets": [
+            {
+              "snippet": "... \u003cb\u003etesis\...
+Request Start: 2026-02-19 10:24:36
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "snippets": [
+            {
+              "snippet_status": "SUCCESS",
+              "snippet": "... \u003cb\u003eQUITO\u003c/b\u003...
+Request Start: 2026-02-19 15:22:52
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "title": "MSQ714",
+          "can_fetch_raw_content": "true",
+          "snippets": [
+            {
+              "snippet_status": ...
+Request Start: 2026-02-20 14:36:42
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "title": "MSQ714",
+          "snippets": [
+            {
+              "snipp...
+Request Start: 2026-02-20 16:18:22
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "snippets": [
+            {
+              "snippet_status": "SUCCESS",
+      ...
+Request Start: 2026-02-20 18:09:42
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "title": "MSQ714",
+          "can_fetch_raw_content": "true",
+          "snip...
+Request Start: 2026-02-20 18:13:26
+Search Response (200): {
+  "results": [
+    {
+      "id": "0d7dd1db38931c94ee98151b3491946a",
+      "document": {
+        "name": "projects/603205574306/locations/global/collections/default_collection/dataStores/tesis-cieepe-data_1771317842045/branches/0/documents/0d7dd1db38931c94ee98151b3491946a",
+        "id": "0d7dd1db38931c94ee98151b3491946a",
+        "derivedStructData": {
+          "link": "gs://tesis-cieepe-2026/MSQ714.pdf",
+          "title": "MSQ714",
+          "snippets": [
+            {
+              "snipp...

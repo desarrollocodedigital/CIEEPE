@@ -1,0 +1,216 @@
+﻿<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FormaciÃ³n Docente | CIEEPE</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .bg-abstract {
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 100 C 20 0 50 0 100 100 Z' fill='white' fill-opacity='0.1'/%3E%3C/svg%3E");
+            background-size: cover;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 antialiased">
+
+    <!-- NavegaciÃ³n -->
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 py-2 bg-white text-blue-900 shadow-md">
+        <div class="container mx-auto px-4 md:px-8 flex justify-between items-center">
+            <a href="index.html#inicio" id="nav-logo" class="flex items-center">
+                <img src="./img/logo.png" alt="CIEEPE ENEES Logo" class="h-12 w-auto md:h-14">
+            </a>
+            <div class="hidden md:flex space-x-6 lg:space-x-8">
+                <a href="index.html#inicio"
+                    class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Inicio</a>
+                <a href="index.html#investigacion"
+                    class="nav-link text-sm font-medium text-blue-600 transition-colors">LÃ­neas</a>
+                <a href="proyectos.php"
+                    class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Proyectos</a>
+                <a href="investigadores.php"
+                    class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Equipo</a>
+            </div>
+            <button id="mobile-menu-btn" class="md:hidden focus:outline-none text-gray-700">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+        <div id="mobile-menu"
+            class="hidden md:hidden bg-white shadow-lg absolute top-full left-0 w-full py-4 px-6 flex flex-col space-y-4 text-gray-800">
+            <a href="index.html#inicio" class="font-medium">Inicio</a>
+            <a href="index.html#investigacion" class="font-medium text-blue-600">LÃ­neas de InvestigaciÃ³n</a>
+            <a href="proyectos.php" class="font-medium">Proyectos</a>
+            <a href="investigadores.php" class="font-medium">Equipo</a>
+        </div>
+    </nav>
+
+    <!-- Header Interno -->
+    <header class="bg-blue-900 text-white pt-32 pb-16 bg-abstract relative overflow-hidden">
+        <div class="container mx-auto px-4 md:px-8 relative z-10 text-center">
+            <div class="inline-block p-3 rounded-full bg-blue-800/50 backdrop-blur-sm mb-6 border border-blue-400/30">
+                <i data-lucide="users" class="w-8 h-8 text-blue-300"></i>
+            </div>
+            <br>
+            <a href="index.html#investigacion"
+                class="inline-flex items-center text-blue-200 hover:text-white mb-6 transition-colors font-medium">
+                <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i> Volver a LÃ­neas
+            </a>
+            <h1 class="text-3xl md:text-5xl font-bold mb-4">FormaciÃ³n Docente, InclusiÃ³n y EvaluaciÃ³n Educativa</h1>
+            <p class="text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
+                AnÃ¡lisis de procesos de formaciÃ³n inicial y continua, y el impacto de la evaluaciÃ³n en la equidad
+                educativa.
+            </p>
+        </div>
+    </header>
+
+    <!-- SecciÃ³n de Investigadores -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="flex items-center mb-10">
+                <div class="h-8 w-1 bg-blue-600 rounded-full mr-4"></div>
+                <h2 class="text-2xl font-bold text-gray-900">Investigadores Colaboradores</h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+
+                <!-- Investigador Responsable: Bertha Margarita Salas -->
+                <div
+                    class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 p-6 flex flex-col items-center text-center">
+                    <div
+                        class="w-24 h-24 rounded-full mb-4 overflow-hidden border-4 border-gray-50 shadow-sm group-hover:scale-105 transition-transform duration-500">
+                        <img src="./img/investigadores/BERTHA SALAS.jpeg" alt="Bertha Margarita Salas"
+                            class="w-full h-full object-cover object-center">
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">Bertha Margarita Salas</h3>
+                    <span
+                        class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full font-semibold mb-3 inline-block">Responsable</span>
+                    <p class="text-blue-600 font-medium text-xs mb-3">Investigadora Titular</p>
+                    <a href="perfil_bertha_salas.html" class="text-blue-600 text-sm font-semibold hover:underline">Ver
+                        Perfil</a>
+                </div>
+
+                <!-- Investigador: Brenda LucÃ­a Torres LÃ³pez -->
+                <div
+                    class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 p-6 flex flex-col items-center text-center">
+                    <div
+                        class="w-24 h-24 rounded-full mb-4 overflow-hidden border-4 border-gray-50 shadow-sm group-hover:scale-105 transition-transform duration-500">
+                        <img src="./img/investigadores/BRENDA LUCIA TORRES LOPEZ.jpg" alt="Brenda LucÃ­a Torres LÃ³pez"
+                            class="w-full h-full object-cover object-center">
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">Brenda LucÃ­a Torres LÃ³pez</h3>
+                    <p class="text-pink-600 font-medium text-xs mb-3">Investigadora Interna</p>
+                    <a href="perfil_brenda_torres.html" class="text-blue-600 text-sm font-semibold hover:underline">Ver
+                        Perfil</a>
+                </div>
+
+                <!-- Investigador: Luis Miguel DÃ­az RodrÃ­guez -->
+                <div
+                    class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 p-6 flex flex-col items-center text-center">
+                    <div
+                        class="w-24 h-24 rounded-full mb-4 overflow-hidden border-4 border-gray-50 shadow-sm group-hover:scale-105 transition-transform duration-500">
+                        <img src="./img/investigadores/Luis Miguel DÃ­az RodrÃ­guez .jpg" alt="Luis Miguel DÃ­az RodrÃ­guez"
+                            class="w-full h-full object-cover object-center">
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">Luis Miguel DÃ­az RodrÃ­guez</h3>
+                    <p class="text-amber-600 font-medium text-xs mb-3">Investigador Externo</p>
+                    <a href="perfil_luis_diaz.html" class="text-blue-600 text-sm font-semibold hover:underline">Ver
+                        Perfil</a>
+                </div>
+
+                <!-- Investigador (Placeholder) -->
+                <div
+                    class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100">
+                    <div class="p-4 flex flex-col items-center text-center">
+                        <div
+                            class="w-20 h-20 rounded-full bg-gray-200 mb-3 overflow-hidden flex items-center justify-center">
+                            <i data-lucide="user" class="w-12 h-12 text-gray-400"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-1">Jorge Mario Soto Moreno</h3>
+                        <span
+                            class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-semibold mb-3">Investigador
+                            Interno</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SecciÃ³n de Proyectos -->
+    <section class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="flex items-center mb-10">
+                <div class="h-8 w-1 bg-amber-500 rounded-full mr-4"></div>
+                <h2 class="text-2xl font-bold text-gray-900">Proyectos Asociados</h2>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Proyecto 1 -->
+                <article
+                    class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 flex flex-col group border border-gray-100">
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="./img/Competencias docentes para la inclusiÃ³n educativa.png" alt="FormaciÃ³n Docente"
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div
+                            class="absolute top-4 left-4 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm uppercase tracking-wide">
+                            En Puerta
+                        </div>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <div class="flex items-center text-xs text-gray-500 mb-3 space-x-2">
+                            <i data-lucide="tag" class="w-3 h-3 text-blue-500"></i>
+                            <span class="font-medium text-blue-600">FormaciÃ³n Docente</span>
+                        </div>
+                        <h3
+                            class="text-xl font-bold text-gray-900 mb-3 leading-tight group-hover:text-blue-600 transition-colors">
+                            Competencias docentes para la inclusiÃ³n educativa
+                        </h3>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-4 flex-1">
+                            Un diagnÃ³stico en la formaciÃ³n inicial de normalistas en Sinaloa sobre las competencias para
+                            la inclusiÃ³n educativa.
+                        </p>
+                        <div class="border-t border-gray-100 pt-4 mt-auto">
+                            <a href="detalle_proyecto.html"
+                                class="text-blue-600 font-bold text-sm hover:underline flex items-center">
+                                Ver Ficha TÃ©cnica <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 border-t border-gray-800">
+        <div class="container mx-auto px-4 md:px-8 text-center">
+            <p>&copy; <span id="year"></span> CIEEPE - Escuela Normal de EspecializaciÃ³n del Estado de Sinaloa.</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        let isMenuOpen = false;
+        mobileMenuBtn.addEventListener('click', () => {
+            isMenuOpen = !isMenuOpen;
+            mobileMenu.classList.toggle('hidden', !isMenuOpen);
+        });
+    </script>
+</body>
+
+</html>
+
