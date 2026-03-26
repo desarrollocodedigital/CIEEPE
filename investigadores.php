@@ -66,7 +66,7 @@ $investigadores = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </nav>
 
     <!-- Header Interno -->
-    <header class="bg-blue-900 text-white pt-32 pb-16 bg-abstract relative overflow-hidden">
+    <header class="bg-blue-900 text-white pt-24 pb-16 bg-abstract relative overflow-hidden">
         <div class="container mx-auto px-4 md:px-8 relative z-10 text-center">
             <h1 class="text-4xl md:text-5xl font-bold mb-4">Nuestro Equipo</h1>
             <p class="text-xl text-blue-100 max-w-2xl mx-auto">Investigadores comprometidos con la transformación
@@ -75,7 +75,7 @@ $investigadores = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </header>
 
     <!-- Sección de Búsqueda y Filtros -->
-    <section class="py-10 bg-white border-b border-gray-200 sticky top-[80px] z-30 shadow-sm">
+    <section class="py-10 bg-white border-b border-gray-200 sticky top-[72px] z-30 shadow-sm">
         <div class="container mx-auto px-4 md:px-8">
             <div class="max-w-4xl mx-auto">
                 <div class="relative">

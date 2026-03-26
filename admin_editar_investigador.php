@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $tipo_investigador = $_POST['tipo_investigador'] ?? '';
     $semblanza_corta = $_POST['semblanza_corta'] ?? '';
     $semblanza = $_POST['semblanza'] ?? '';
+    $procedencia = $_POST['procedencia'] ?? 'Interno';
     
     $imagen_perfil = $_POST['imagen_actual'] ?? './img/placeholder.jpg';
     $cv_url = $_POST['cv_actual'] ?? '#';
@@ -72,9 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 
     if (empty($error)) {
-        $sql = "UPDATE investigadores SET nombre=?, especialidad=?, cargo_o_grado=?, tipo_investigador=?, etiqueta_badge=?, email=?, telefono=?, ubicacion=?, linkedin_url=?, facebook_url=?, cv_url=?, semblanza_corta=?, semblanza=?, imagen_perfil=? WHERE id=?";
+        $sql = "UPDATE investigadores SET nombre=?, especialidad=?, cargo_o_grado=?, tipo_investigador=?, etiqueta_badge=?, email=?, telefono=?, ubicacion=?, linkedin_url=?, facebook_url=?, cv_url=?, semblanza_corta=?, semblanza=?, imagen_perfil=?, procedencia=? WHERE id=?";
         $stmt = $pdo->prepare($sql);
-        if ($stmt->execute([$nombre, $especialidad, $cargo, $tipo_investigador, $badge, $email, $telefono, $ubicacion, $linkedin, $facebook, $cv_url, $semblanza_corta, $semblanza, $imagen_perfil, $id])) {
+        if ($stmt->execute([$nombre, $especialidad, $cargo, $tipo_investigador, $badge, $email, $telefono, $ubicacion, $linkedin, $facebook, $cv_url, $semblanza_corta, $semblanza, $imagen_perfil, $procedencia, $id])) {
             $mensaje = 'Perfil y archivos actualizados exitosamente.';
         } else {
             $error = 'Ocurrió un error al actualizar la base de datos.';
@@ -281,6 +282,18 @@ $lista_lineas = $pdo->query("SELECT titulo FROM lineas_investigacion ORDER BY ti
                             <span class="ml-2 px-2 py-0.5 rounded text-[10px] bg-gray-200 text-gray-600 font-medium">Ej: Investigador SNII</span>
                         </label>
                         <input type="text" name="tipo_investigador" value="<?= htmlspecialchars($inv['tipo_investigador'] ?? '') ?>" class="w-full rounded-lg border-gray-300 border focus:border-blue-500 focus:ring-blue-500 p-2.5 outline-none text-sm shadow-sm bg-gray-50 focus:bg-white transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Procedencia (Interno/Externo) *</label>
+                        <div class="relative">
+                            <select name="procedencia" required class="w-full rounded-lg border-gray-300 border focus:border-blue-500 focus:ring-blue-500 p-2.5 pr-10 outline-none text-sm shadow-sm bg-gray-50 focus:bg-white transition-colors appearance-none font-semibold">
+                                <option value="Interno" <?= $inv['procedencia'] == 'Interno' ? 'selected' : '' ?>>Interno (CIEEPE)</option>
+                                <option value="Externo" <?= $inv['procedencia'] == 'Externo' ? 'selected' : '' ?>>Externo (Otros Centros)</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Etiqueta (Badge)</label>

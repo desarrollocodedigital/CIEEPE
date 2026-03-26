@@ -6,7 +6,7 @@ header("Access-Control-Allow-Origin: *");
 require_once 'conexion.php';
 
 try {
-    $stmt = $pdo->query("SELECT id, titulo, descripcion, icono, url_saber_mas, color FROM lineas_investigacion ORDER BY id ASC");
+    $stmt = $pdo->query("SELECT id, titulo, descripcion, icono, color FROM lineas_investigacion ORDER BY id ASC");
     $lineas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Mapear los nombres de columnas a las propiedades que espera el JS en index.html

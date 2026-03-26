@@ -28,7 +28,10 @@ $pro = [
 
 // Obtener listas para desplegables
 $lista_categorias = $pdo->query("SELECT titulo FROM lineas_investigacion ORDER BY id ASC")->fetchAll(PDO::FETCH_ASSOC);
-$lista_investigadores = $pdo->query("SELECT nombre FROM investigadores ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+$lista_todos = $pdo->query("SELECT nombre, procedencia FROM investigadores ORDER BY nombre ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+$lista_internos = array_filter($lista_todos, function($i) { return $i['procedencia'] === 'Interno'; });
+$lista_externos = array_filter($lista_todos, function($i) { return $i['procedencia'] === 'Externo'; });
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create_project') {
     $pro['titulo'] = trim($_POST['titulo'] ?? '');
@@ -217,7 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <div class="relative">
                             <select name="responsable" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none bg-white pr-10">
                                 <option value="">Selecciona responsable</option>
-                                <?php foreach($lista_investigadores as $inv): ?>
+                                <?php foreach($lista_todos as $inv): ?>
                                     <option value="<?= htmlspecialchars($inv['nombre']) ?>" <?= $pro['responsable'] == $inv['nombre'] ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($inv['nombre']) ?>
                                     </option>
@@ -254,8 +257,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <!-- Select visible para elegir -->
                         <div class="relative">
                             <select id="dropdown-internos" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none bg-white pr-10">
-                                <option value="">Añadir colaborador</option>
-                                <?php foreach($lista_investigadores as $inv): ?>
+                                <option value="">Añadir colaborador interno</option>
+                                <?php foreach($lista_internos as $inv): ?>
                                     <option value="<?= htmlspecialchars($inv['nombre']) ?>"><?= htmlspecialchars($inv['nombre']) ?></option>
                                 <?php endforeach; ?>
                             </select>
@@ -285,8 +288,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <!-- Select visible para elegir -->
                         <div class="relative">
                             <select id="dropdown-externos" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all appearance-none bg-white pr-10">
-                                <option value="">Añadir colaborador</option>
-                                <?php foreach($lista_investigadores as $inv): ?>
+                                <option value="">Añadir colaborador externo</option>
+                                <?php foreach($lista_externos as $inv): ?>
                                     <option value="<?= htmlspecialchars($inv['nombre']) ?>"><?= htmlspecialchars($inv['nombre']) ?></option>
                                 <?php endforeach; ?>
                             </select>

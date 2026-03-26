@@ -16,14 +16,41 @@ if (!$pro) {
     exit;
 }
 
-// Convertir arrays
-$internos = array_filter(array_map('trim', explode(',', $pro['internos'] ?? '')));
-$externos = array_filter(array_map('trim', explode(',', $pro['externos'] ?? '')));
-
-// Obtener objetivos específicos
+// Objetivos específicos
 $stmt_obj = $pdo->prepare("SELECT * FROM proyecto_objetivos WHERE proyecto_id = ? ORDER BY orden ASC");
 $stmt_obj->execute([$id]);
 $objetivos = $stmt_obj->fetchAll(PDO::FETCH_ASSOC);
+
+// Convertir arrays de nombres
+$internos = array_filter(array_map('trim', explode(',', $pro['internos'] ?? '')));
+$externos = array_filter(array_map('trim', explode(',', $pro['externos'] ?? '')));
+
+// --- VINCULACIÓN DE INVESTIGADORES ---
+// Recolectar todos los nombres para una sola consulta
+$nombres_equipo = array_unique(array_merge(
+    [$pro['responsable']],
+    $internos,
+    $externos
+));
+$nombres_equipo = array_filter($nombres_equipo);
+
+$investigadores_data = [];
+if (!empty($nombres_equipo)) {
+    $placeholders = implode(',', array_fill(0, count($nombres_equipo), '?'));
+    $stmt_inv = $pdo->prepare("SELECT id, nombre, imagen_perfil FROM investigadores WHERE nombre IN ($placeholders)");
+    $stmt_inv->execute(array_values($nombres_equipo));
+    while ($row = $stmt_inv->fetch(PDO::FETCH_ASSOC)) {
+        $investigadores_data[$row['nombre']] = $row;
+    }
+}
+
+// Función auxiliar para renderizar enlace o nombre
+function renderInvestigadorLink($nombre, $data) {
+    if (isset($data[$nombre])) {
+        return '<a href="perfil_generico.php?id=' . $data[$nombre]['id'] . '" class="text-blue-600 hover:text-blue-800 font-semibold transition-colors hover:underline">' . htmlspecialchars($nombre) . '</a>';
+    }
+    return htmlspecialchars($nombre);
+}
 ?>
 <!DOCTYPE html>
 <html lang="es" class="scroll-smooth">
@@ -34,6 +61,10 @@ $objetivos = $stmt_obj->fetchAll(PDO::FETCH_ASSOC);
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
     <title><?= htmlspecialchars($pro['titulo']) ?> | CIEEPE</title>
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -66,6 +97,8 @@ $objetivos = $stmt_obj->fetchAll(PDO::FETCH_ASSOC);
             </a>
             <div class="hidden md:flex space-x-6 lg:space-x-8">
                 <a href="index.html#inicio" class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Inicio</a>
+                <a href="index.html#nosotros" class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Nosotros</a>
+                <a href="index.html#investigacion" class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Líneas</a>
                 <a href="proyectos.php" class="nav-link text-sm font-medium text-blue-600">Proyectos</a>
                 <a href="noticias.php" class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Noticias</a>
                 <a href="investigadores.php" class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Equipo</a>
@@ -77,6 +110,8 @@ $objetivos = $stmt_obj->fetchAll(PDO::FETCH_ASSOC);
         </div>
         <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute top-full left-0 w-full py-4 px-6 flex flex-col space-y-4 text-gray-800">
             <a href="index.html#inicio" class="font-medium">Inicio</a>
+            <a href="index.html#nosotros" class="font-medium">Nosotros</a>
+            <a href="index.html#investigacion" class="font-medium">Líneas</a>
             <a href="proyectos.php" class="font-medium text-blue-600">Proyectos</a>
             <a href="noticias.php" class="font-medium">Noticias</a>
             <a href="investigadores.php" class="font-medium">Equipo</a>
@@ -156,12 +191,22 @@ $objetivos = $stmt_obj->fetchAll(PDO::FETCH_ASSOC);
                             <!-- Responsable -->
                             <div class="bg-white rounded-xl p-4 shadow-sm border border-blue-200">
                                 <div class="flex items-center space-x-4">
-                                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                                        <i data-lucide="user" class="w-8 h-8 text-blue-600"></i>
+                                    <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-blue-100 flex-shrink-0 shadow-sm">
+                                        <?php 
+                                        $res_name = $pro['responsable'];
+                                        if (isset($investigadores_data[$res_name]) && !empty($investigadores_data[$res_name]['imagen_perfil'])): ?>
+                                            <img src="<?= htmlspecialchars($investigadores_data[$res_name]['imagen_perfil']) ?>" alt="Foto" class="w-full h-full object-cover">
+                                        <?php else: ?>
+                                            <div class="w-full h-full bg-blue-50 flex items-center justify-center">
+                                                <i data-lucide="user" class="w-8 h-8 text-blue-600"></i>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                     <div>
                                         <p class="text-xs text-blue-600 font-semibold uppercase tracking-wide">Responsable</p>
-                                        <h4 class="font-bold text-lg text-gray-900"><?= htmlspecialchars($pro['responsable']) ?></h4>
+                                        <h4 class="font-bold text-lg text-gray-900 line-clamp-1">
+                                            <?= renderInvestigadorLink($res_name, $investigadores_data) ?>
+                                        </h4>
                                     </div>
                                 </div>
                             </div>
@@ -173,7 +218,10 @@ $objetivos = $stmt_obj->fetchAll(PDO::FETCH_ASSOC);
                                 <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-3">Colaboradores Internos</p>
                                 <ul class="space-y-2 text-sm text-gray-700">
                                     <?php foreach($internos as $inv): ?>
-                                    <li class="flex items-center"><i data-lucide="check-circle" class="w-4 h-4 text-green-500 mr-2"></i><?= htmlspecialchars($inv) ?></li>
+                                    <li class="flex items-center space-x-2">
+                                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0"></i>
+                                        <span class="text-gray-700"><?= renderInvestigadorLink($inv, $investigadores_data) ?></span>
+                                    </li>
                                     <?php endforeach; ?>
                                 </ul>
                             </div>
@@ -185,7 +233,10 @@ $objetivos = $stmt_obj->fetchAll(PDO::FETCH_ASSOC);
                                 <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-3">Colaboradores Externos</p>
                                 <ul class="space-y-2 text-sm text-gray-700">
                                     <?php foreach($externos as $inv): ?>
-                                    <li class="flex items-center"><i data-lucide="check-circle" class="w-4 h-4 text-teal-500 mr-2"></i><?= htmlspecialchars($inv) ?></li>
+                                    <li class="flex items-center space-x-2">
+                                        <i data-lucide="check-circle" class="w-4 h-4 text-teal-500 flex-shrink-0"></i>
+                                        <span class="text-gray-700"><?= renderInvestigadorLink($inv, $investigadores_data) ?></span>
+                                    </li>
                                     <?php endforeach; ?>
                                 </ul>
                             </div>
@@ -228,18 +279,18 @@ $objetivos = $stmt_obj->fetchAll(PDO::FETCH_ASSOC);
                                 </li>
                             </ul>
                             
-                            <div class="mt-8">
+                             <div class="mt-8">
                                 <?php if(!empty($pro['pdf_protocolo'])): ?>
-                                    <a href="<?= htmlspecialchars($pro['pdf_protocolo']) ?>" target="_blank"
-                                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center transition-colors shadow-md">
-                                        <i data-lucide="download" class="w-4 h-4 mr-2"></i> Descargar Protocolo PDF
-                                    </a>
+                                    <button onclick="openProtocolModal('<?= htmlspecialchars($pro['pdf_protocolo']) ?>')"
+                                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center transition-all shadow-md group">
+                                        <i data-lucide="eye" class="w-4 h-4 mr-2 group-hover:scale-110 transition-transform"></i> Visualizar Protocolo
+                                    </button>
                                 <?php else: ?>
                                     <div class="tooltip w-full">
                                         <button disabled class="w-full bg-gray-100 text-gray-400 font-bold py-3 rounded-lg cursor-not-allowed flex items-center justify-center border border-gray-200">
-                                            <i data-lucide="download" class="w-4 h-4 mr-2"></i> Descargar Protocolo PDF
+                                            <i data-lucide="eye-off" class="w-4 h-4 mr-2"></i> Visualizar Protocolo
                                         </button>
-                                        <span class="tooltip-text">Sin protocolo para descargar</span>
+                                        <span class="tooltip-text">Sin protocolo para visualizar</span>
                                     </div>
                                 <?php endif; ?>
                             </div>
@@ -303,6 +354,44 @@ $objetivos = $stmt_obj->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </footer>
+    
+    <!-- Modal de Visualización de Protocolo -->
+    <div id="protocol-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-sm" onclick="closeProtocolModal()"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative bg-white w-full max-w-5xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-blue-50/50">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white mr-4 shadow-sm">
+                        <i data-lucide="file-text" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-900">Visor de Protocolo de Investigación</h3>
+                        <p class="text-xs text-gray-500">Documento propiedad de CIEEPE - Solo lectura</p>
+                    </div>
+                </div>
+                <button onclick="closeProtocolModal()" class="p-2 hover:bg-white rounded-full transition-colors group">
+                    <i data-lucide="x" class="w-6 h-6 text-gray-400 group-hover:text-red-500"></i>
+                </button>
+            </div>
+            
+            <!-- Viewer Body -->
+            <div class="flex-grow bg-gray-50 relative overflow-y-auto custom-scroll" id="modal-scroll-container">
+                <div id="pdf-render-container" class="flex flex-col items-center p-4 space-y-4 shadow-inner" oncontextmenu="return false;">
+                    <!-- Los cancases del PDF se insertarán aquí -->
+                    <div id="pdf-loader" class="flex flex-col items-center justify-center py-20 text-blue-600">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                        <p class="text-sm font-medium text-gray-500">Cargando protocolo...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
 
     <script>
         lucide.createIcons();
@@ -313,6 +402,70 @@ $objetivos = $stmt_obj->fetchAll(PDO::FETCH_ASSOC);
             const menu = document.getElementById('mobile-menu');
             menu.classList.toggle('hidden');
             menu.classList.toggle('flex');
+        });
+
+        // Lógica del Modal de Protocolo con PDF.js
+        async function openProtocolModal(url) {
+            const modal = document.getElementById('protocol-modal');
+            const container = document.getElementById('pdf-render-container');
+            const loader = document.getElementById('pdf-loader');
+            const scrollContainer = document.getElementById('modal-scroll-container');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; 
+            scrollContainer.scrollTop = 0;
+
+            // Limpiar contenido previo excepto el loader
+            Array.from(container.children).forEach(child => {
+                if(child.id !== 'pdf-loader') child.remove();
+            });
+            loader.style.display = 'flex';
+
+            try {
+                const loadingTask = pdfjsLib.getDocument(url);
+                const pdf = await loadingTask.promise;
+                
+                loader.style.display = 'none';
+
+                // Renderizar todas las páginas
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    canvas.className = 'max-w-full shadow-lg border border-gray-200 bg-white';
+                    
+                    container.appendChild(canvas);
+                    
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise;
+                }
+            } catch (error) {
+                console.error('Error al cargar PDF:', error);
+                loader.innerHTML = `
+                    <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500 mb-4"></i>
+                    <p class="text-sm font-medium text-red-500">Error al cargar el documento</p>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        function closeProtocolModal() {
+            const modal = document.getElementById('protocol-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = ''; 
+        }
+
+        // Cerrar con Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeProtocolModal();
         });
     </script>
 </body>
