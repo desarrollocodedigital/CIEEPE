@@ -9,7 +9,7 @@ require_once 'conexion.php';
 $modulo = $_GET['modulo'] ?? 'inicio';
 
 // Map de módulos seguros
-$modulosValidos = ['inicio', 'investigadores', 'proyectos', 'lineas', 'noticias', 'editar_investigador', 'nuevo_investigador', 'nueva_linea', 'editar_linea', 'nuevo_proyecto', 'editar_proyecto', 'nueva_noticia', 'editar_noticia', 'inicio_config', 'nosotros_config'];
+$modulosValidos = ['inicio', 'investigadores', 'proyectos', 'lineas', 'noticias', 'editar_investigador', 'nuevo_investigador', 'nueva_linea', 'editar_linea', 'nuevo_proyecto', 'editar_proyecto', 'nueva_noticia', 'editar_noticia', 'inicio_config', 'nosotros_config', 'contacto_config'];
 if (!in_array($modulo, $modulosValidos)) {
     $modulo = 'inicio';
 }
@@ -88,6 +88,11 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                 <i data-lucide="info" class="w-5 h-5 mr-3"></i>
                 <span class="font-medium text-sm">Config. Nosotros</span>
             </a>
+
+            <a href="admin.php?modulo=contacto_config" class="mx-2 px-4 py-3 flex items-center rounded-lg transition-colors <?= $modulo === 'contacto_config' ? $activeClass : $inactiveClass ?>">
+                <i data-lucide="map-pin" class="w-5 h-5 mr-3"></i>
+                <span class="font-medium text-sm">Config. Contacto</span>
+            </a>
         </nav>
 
         <!-- User bottom part -->
@@ -130,6 +135,7 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                             case 'editar_linea': echo "Editar Línea de Investigación"; break;
                             case 'inicio_config': echo "Configuración del Inicio"; break;
                             case 'nosotros_config': echo "Configuración: Sobre Nosotros"; break;
+                            case 'contacto_config': echo "Configuración: Contacto y Ubicación"; break;
                         }
                     ?>
                 </h2>
