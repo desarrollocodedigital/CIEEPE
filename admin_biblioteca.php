@@ -47,84 +47,26 @@ if (isset($_GET['accion']) && isset($_GET['id'])) {
     }
 }
 
-// Lógica de Edición de Usuario (POST)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'editar_usuario') {
-    $id = (int)$_POST['id_usuario'];
-    $nombre = $_POST['nombre'];
-    $correo = $_POST['correo'];
-    $tipo = $_POST['tipo_usuario'];
-    $rol = $_POST['rol'];
-    $estado = $_POST['estado'];
-    
-    $sql = "UPDATE usuarios_biblioteca SET 
-            nombre = ?, 
-            correo = ?, 
-            tipo_usuario = ?, 
-            rol = ?, 
-            estado = ? 
-            WHERE id = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$nombre, $correo, $tipo, $rol, $estado, $id]);
-    
-    $success_msg = "Perfil de usuario actualizado con éxito.";
-}
-
-// Lógica de Edición de Documento (POST)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'editar_documento') {
-    $id = (int)$_POST['id_doc'];
-    $titulo = $_POST['titulo'];
-    $tipo = $_POST['tipo_doc'] ?? '';
-    $resumen = $_POST['resumen'] ?? '';
-    $estado = $_POST['estado_publicacion'];
-    
-    // Obtener datos actuales para mantener archivos si no se suben nuevos
-    $stmt_current = $pdo->prepare("SELECT archivo_documento, imagen_portada FROM documentos_biblioteca WHERE id = ?");
-    $stmt_current->execute([$id]);
-    $current = $stmt_current->fetch();
-    
-    $rutaArchivo = $current['archivo_documento'];
-    $rutaPortada = $current['imagen_portada'];
-    
-    // Procesar nuevo PDF
-    if (!empty($_FILES['nuevo_pdf']['name'])) {
-        $dirDocs = "uploads/biblioteca/documentos/";
-        if (!is_dir($dirDocs)) mkdir($dirDocs, 0777, true);
-        $ext = pathinfo($_FILES['nuevo_pdf']['name'], PATHINFO_EXTENSION);
-        if (strtolower($ext) === 'pdf') {
-            $nombreArchivo = time() . "_" . bin2hex(random_bytes(4)) . ".pdf";
-            if (move_uploaded_file($_FILES['nuevo_pdf']['tmp_name'], $dirDocs . $nombreArchivo)) {
-                $rutaArchivo = $dirDocs . $nombreArchivo;
-            }
+// Lógica de Guardado de Configuración
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_config'])) {
+    if (isset($_POST['config']) && is_array($_POST['config'])) {
+        foreach($_POST['config'] as $clave => $valor) {
+            $stmt = $pdo->prepare("INSERT INTO site_config (clave, valor) VALUES (?, ?) ON DUPLICATE KEY UPDATE valor = ?");
+            $stmt->execute([$clave, $valor, $valor]);
         }
     }
-    
-    // Procesar nueva Portada
-    if (!empty($_FILES['nueva_portada']['name'])) {
-        $dirPorts = "uploads/biblioteca/portadas/";
-        if (!is_dir($dirPorts)) mkdir($dirPorts, 0777, true);
-        $ext = pathinfo($_FILES['nueva_portada']['name'], PATHINFO_EXTENSION);
-        $allowed = ['jpg', 'jpeg', 'png', 'webp'];
-        if (in_array(strtolower($ext), $allowed)) {
-            $nombrePortada = time() . "_p_" . bin2hex(random_bytes(4)) . "." . $ext;
-            if (move_uploaded_file($_FILES['nueva_portada']['tmp_name'], $dirPorts . $nombrePortada)) {
-                $rutaPortada = $dirPorts . $nombrePortada;
-            }
-        }
-    }
+    // Caso especial para checkboxes (si no vienen en el POST, es que están desactivados)
+    // Para el botón CIATA:
+    $btn_val = isset($_POST['show_ciata_button']) ? '1' : '0';
+    $stmt = $pdo->prepare("INSERT INTO site_config (clave, valor) VALUES ('show_ciata_button', ?) ON DUPLICATE KEY UPDATE valor = ?");
+    $stmt->execute([$btn_val, $btn_val]);
 
-    $sql = "UPDATE documentos_biblioteca SET 
-            titulo = ?, 
-            tipo = ?, 
-            resumen = ?, 
-            archivo_documento = ?,
-            imagen_portada = ?,
-            estado_publicacion = ? 
-            WHERE id = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$titulo, $tipo, $resumen, $rutaArchivo, $rutaPortada, $estado, $id]);
-    
-    $success_msg = "Documento y archivos actualizados correctamente.";
+    $success_msg = "Configuración del sistema actualizada correctamente.";
 }
+
+// Lógica de Edición de Usuario (Migrada a modificar_usuario.php)
+
+// Lógica de Edición de Documento (POST eliminada, se usa subir_articulo.php)
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -136,10 +78,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6;}
         .sidebar-scroll::-webkit-scrollbar { width: 4px; }
         .sidebar-scroll::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        #pdf-render-container canvas {
+            max-width: 100%;
+            height: auto !important;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
@@ -497,7 +455,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 <p class="text-[11px] text-slate-500 mt-1">Gestión completa del acervo digital (<span id="docs-count-total"><?= $total_docs ?></span> registros)</p>
                             </div>
                             
-                            <div class="flex items-center gap-3 w-full md:w-auto">
+                            <div class="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+                                <!-- Filtros de Estado -->
+                                <div class="flex bg-slate-100 p-1 rounded-xl" id="bib-filters">
+                                    <?php 
+                                        $f_bib = 'todos';
+                                        $filterOptionsBib = [
+                                            'todos' => 'Todos',
+                                            'pendiente' => 'Pendientes',
+                                            'publicado' => 'Publicados',
+                                            'suspendido' => 'Suspendidos',
+                                            'rechazado' => 'Rechazados',
+                                            'borrador' => 'Borradores'
+                                        ];
+                                        foreach($filterOptionsBib as $val => $lab):
+                                            $isActiveF = ($f_bib === $val);
+                                    ?>
+                                    <button onclick="changeBibFilter('<?= $val ?>')" data-status="<?= $val ?>"
+                                       class="bib-filter-btn px-3 py-1.5 text-[10px] font-bold uppercase rounded-lg transition-all <?= $isActiveF ? 'bg-white text-emerald-900 shadow-sm' : 'text-slate-500 hover:text-slate-700' ?>">
+                                        <?= $lab ?>
+                                    </button>
+                                    <?php endforeach; ?>
+                                </div>
+
                                 <!-- Buscador Dinámico -->
                                 <div class="relative w-full md:w-64">
                                     <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
@@ -509,11 +489,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Filtros por Tipo (Nueva Fila de Filtros) -->
+                        <div class="px-6 py-3 bg-white border-b border-slate-100 flex items-center gap-4 overflow-x-auto custom-scrollbar">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Tipo de Documento:</span>
+                            <div class="flex gap-2" id="bib-type-filters">
+                                <?php 
+                                    $typeOptions = [
+                                        'todos' => ['lab' => 'Todos', 'icon' => 'layers'],
+                                        'articulo' => ['lab' => 'Artículos', 'icon' => 'file-text'],
+                                        'tesis' => ['lab' => 'Tesis', 'icon' => 'graduation-cap'],
+                                        'acervo' => ['lab' => 'Acervos', 'icon' => 'archive']
+                                    ];
+                                    foreach($typeOptions as $val => $opt):
+                                ?>
+                                <button onclick="changeBibTypeFilter('<?= $val ?>')" data-type="<?= $val ?>"
+                                    class="bib-type-btn px-4 py-1.5 rounded-full text-[10px] font-bold border transition-all flex items-center gap-2 <?= $val === 'todos' ? 'bg-slate-900 text-white border-slate-900 shadow-md shadow-slate-900/10' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300' ?>">
+                                    <i data-lucide="<?= $opt['icon'] ?>" class="w-3 h-3"></i>
+                                    <?= $opt['lab'] ?>
+                                </button>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider font-bold">
                                         <th class="px-6 py-3 border-b">Documento</th>
+                                        <th class="px-6 py-3 border-b">Tipo</th>
                                         <th class="px-6 py-3 border-b">Investigador</th>
                                         <th class="px-6 py-3 border-b">Estado</th>
                                         <th class="px-6 py-3 border-b text-right">Acciones</th>
@@ -532,26 +535,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                                 <div class="text-xs font-bold text-slate-900"><?= htmlspecialchars($d['titulo']) ?></div>
                                             </div>
                                         </td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase transition-all
+                                                <?= $d['tipo'] === 'articulo' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 
+                                                   ($d['tipo'] === 'tesis' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100') ?>">
+                                                <?= $d['tipo'] ?>
+                                            </span>
+                                        </td>
                                         <td class="px-6 py-4 text-xs text-slate-600 font-medium"><?= htmlspecialchars($d['autor_nombre']) ?></td>
                                         <td class="px-6 py-4">
                                             <span class="px-2 py-0.5 rounded-full text-[8px] font-extrabold uppercase 
                                                 <?= $d['estado_publicacion'] === 'publicado' ? 'bg-emerald-100 text-emerald-700' : 
-                                                   ($d['estado_publicacion'] === 'borrador' ? 'bg-slate-100 text-slate-500' : 'bg-amber-100 text-amber-700') ?>">
+                                                   ($d['estado_publicacion'] === 'borrador' ? 'bg-slate-100 text-slate-600' : 
+                                                   ($d['estado_publicacion'] === 'suspendido' ? 'bg-amber-100 text-amber-700' :
+                                                   ($d['estado_publicacion'] === 'rechazado' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'))) ?>">
                                                 <?= $d['estado_publicacion'] ?>
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 text-right">
                                             <div class="flex justify-end gap-2">
-                                                <button onclick='openEditDocModal(<?= json_encode($d) ?>)' 
-                                                        class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all" 
-                                                        title="Modificar Metadatos">
+                                                <a href="modificar_articulo.php?edit=<?= $d['id'] ?>" 
+                                                   class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all" 
+                                                   title="Modificar Documento">
                                                     <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                                                </button>
-                                                <a href="<?= $d['archivo_documento'] ?>" target="_blank" 
+                                                </a>
+                                                <button onclick="openDocumentViewer('<?= $d['archivo_documento'] ?>', '<?= addslashes($d['titulo']) ?>')" 
                                                    class="p-2 bg-slate-50 text-slate-600 rounded-lg hover:bg-slate-200 transition-all" 
                                                    title="Ver Documento">
                                                     <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                                                </a>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -738,11 +750,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                         </td>
                                         <td class="px-6 py-4">
                                             <div class="flex justify-end gap-2">
-                                                <button onclick='openEditUserModal(<?= json_encode($u) ?>)' 
-                                                        class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 text-[10px] font-bold uppercase shadow-sm border border-blue-100" 
-                                                        title="Modificar Perfil">
+                                                <a href="modificar_usuario.php?edit=<?= $u['id'] ?>" 
+                                                   class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 text-[10px] font-bold uppercase shadow-sm border border-blue-100" 
+                                                   title="Modificar Perfil">
                                                     <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Modificar
-                                                </button>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
@@ -752,13 +764,119 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         </div>
                     </div>
 
+                <?php elseif ($modulo === 'configuracion'): ?>
+                    <!-- CONFIGURACIÓN DEL SISTEMA -->
+                    <div class="w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div class="flex flex-col lg:flex-row gap-8">
+                            
+                            <!-- Columna Principal: Ajustes -->
+                            <div class="flex-grow lg:w-2/3 space-y-8">
+                                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                                    <div class="p-8 border-b border-slate-100 bg-slate-50/50">
+                                        <h3 class="font-bold text-slate-900 flex items-center gap-3 text-lg">
+                                            <i data-lucide="settings-2" class="w-6 h-6 text-blue-600"></i> Ajustes de la Biblioteca CIATA
+                                        </h3>
+                                        <p class="text-sm text-slate-500 mt-1">Personaliza la experiencia visual y funcional del portal público.</p>
+                                    </div>
+                                    
+                                    <form method="POST" class="p-8 space-y-8">
+                                        <input type="hidden" name="guardar_config" value="1">
+                                        
+                                        <!-- Sección: Interfaz Pública -->
+                                        <div class="space-y-6">
+                                            <div class="flex items-center justify-between p-8 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 transition-all group">
+                                                <div class="flex items-start gap-5">
+                                                    <div class="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center text-blue-600 border border-slate-100 group-hover:scale-110 transition-transform">
+                                                        <i data-lucide="bot" class="w-7 h-7"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h4 class="font-bold text-slate-900 text-lg">Botón Flotante CIATA (Asistente AI)</h4>
+                                                        <p class="text-sm text-slate-500 mt-1 max-w-xl leading-relaxed">Controla la visibilidad del chatbot inteligente "Pregúntale al CIATA". Al desactivarlo, se removerán todos los scripts y elementos visuales relacionados con la IA en la biblioteca pública.</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <?php 
+                                                    $showBtn = '1';
+                                                    try {
+                                                        $st = $pdo->query("SELECT valor FROM site_config WHERE clave = 'show_ciata_button'");
+                                                        $row = $st->fetch();
+                                                        if ($row) $showBtn = $row['valor'];
+                                                    } catch (Exception $e) {}
+                                                ?>
+                                                <div class="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200">
+                                                    <span class="text-xs font-bold uppercase tracking-wider <?= $showBtn === '1' ? 'text-emerald-600' : 'text-slate-400' ?>">
+                                                        <?= $showBtn === '1' ? 'Activo' : 'Inactivo' ?>
+                                                    </span>
+                                                    <label class="relative inline-flex items-center cursor-pointer">
+                                                        <input type="checkbox" name="show_ciata_button" value="1" class="sr-only peer" <?= $showBtn === '1' ? 'checked' : '' ?>>
+                                                        <div class="w-14 h-7 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-8 border-t border-slate-100 flex justify-end">
+                                            <button type="submit" class="bg-blue-900 text-white px-10 py-4 rounded-2xl font-bold hover:bg-black transition-all shadow-xl shadow-blue-900/20 active:scale-95 flex items-center gap-3 text-lg">
+                                                <i data-lucide="save" class="w-6 h-6"></i> Guardar Configuración
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Columna Lateral: Información y Estado -->
+                            <div class="lg:w-1/3 space-y-6">
+                                <div class="bg-blue-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl shadow-blue-900/20">
+                                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+                                    <div class="relative z-10">
+                                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-6">
+                                            <i data-lucide="info" class="w-6 h-6 text-white"></i>
+                                        </div>
+                                        <h4 class="text-xl font-bold mb-3">Información del Sistema</h4>
+                                        <p class="text-blue-100 text-sm leading-relaxed mb-6">
+                                            Los cambios realizados en esta sección se aplican de forma global e instantánea. Recuerde verificar la biblioteca pública después de guardar.
+                                        </p>
+                                        <div class="space-y-3">
+                                            <div class="flex items-center gap-3 text-xs bg-black/20 p-3 rounded-xl border border-white/10">
+                                                <i data-lucide="database" class="w-4 h-4 text-blue-300"></i>
+                                                <span>Base de Datos: Sincronizada</span>
+                                            </div>
+                                            <div class="flex items-center gap-3 text-xs bg-black/20 p-3 rounded-xl border border-white/10">
+                                                <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
+                                                <span>Cache: Limpieza automática activa</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+                                    <h4 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                        <i data-lucide="help-circle" class="w-5 h-5 text-slate-400"></i> Ayuda Rápida
+                                    </h4>
+                                    <ul class="space-y-4">
+                                        <li class="flex items-start gap-3">
+                                            <div class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">1</div>
+                                            <p class="text-xs text-slate-500 leading-relaxed">Marque o desmarque los interruptores según la función deseada.</p>
+                                        </li>
+                                        <li class="flex items-start gap-3">
+                                            <div class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">2</div>
+                                            <p class="text-xs text-slate-500 leading-relaxed">Presione "Guardar Configuración" para persistir los cambios.</p>
+                                        </li>
+                                        <li class="flex items-start gap-3">
+                                            <div class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">3</div>
+                                            <p class="text-xs text-slate-500 leading-relaxed">Verifique en modo incógnito si desea ver el cambio inmediato sin cache local.</p>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
                 <?php else: ?>
-                    <!-- OTHERS PLACEHOLDER -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-12 text-center">
-                        <i data-lucide="construction" class="w-16 h-16 text-slate-200 mx-auto mb-4"></i>
-                        <h3 class="text-xl font-bold text-slate-900 mb-2">Módulo en Desarrollo</h3>
-                        <p class="text-slate-500">Estamos trabajando para integrar la gestión de <?= $modulo ?> en el panel administrativo.</p>
-                        <a href="admin_biblioteca.php?modulo=inicio" class="inline-block mt-6 text-blue-600 font-bold hover:underline">Volver al Dashboard</a>
+                    <div class="p-12 text-center text-slate-400">
+                        <i data-lucide="help-circle" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
+                        <p>Seleccione un módulo válido del menú lateral.</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -766,140 +884,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
     </div>
 
-    <!-- ============================================== -->
-    <!-- EDIT USER MODAL                              -->
-    <!-- ============================================== -->
-    <div id="editUserModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeEditUserModal()"></div>
-        
-        <!-- Modal Content -->
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden relative flex flex-col animate-in fade-in zoom-in duration-200">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                <h3 class="font-bold text-slate-900 flex items-center gap-2">
-                    <i data-lucide="user-cog" class="w-5 h-5 text-blue-600"></i> Editar Usuario
-                </h3>
-                <button onclick="closeEditUserModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            
-            <form action="admin_biblioteca.php?modulo=usuarios<?= isset($f) ? "&f=$f" : '' ?>" method="POST" class="p-6 space-y-4">
-                <input type="hidden" name="action" value="editar_usuario">
-                <input type="hidden" name="id_usuario" id="edit_id">
-                
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Nombre Completo</label>
-                    <input type="text" name="nombre" id="edit_nombre" required
-                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
-                </div>
-                
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Correo Electrónico</label>
-                    <input type="email" name="correo" id="edit_correo" required
-                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-slate-500">
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Perfil</label>
-                        <select name="tipo_usuario" id="edit_tipo" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
-                            <option value="membresia">Membresía de Biblioteca</option>
-                            <option value="investigador">Investigador</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Rol de Acceso</label>
-                        <select name="rol" id="edit_rol" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none">
-                            <option value="usuario">Usuario Estándar</option>
-                            <option value="investigador">Investigador Senior</option>
-                            <option value="admin">Administrador</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Estado de la cuenta</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <label class="relative cursor-pointer">
-                            <input type="radio" name="estado" value="pendiente" id="edit_status_pendiente" class="peer sr-only">
-                            <div class="px-3 py-2 text-center text-[10px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600 peer-checked:bg-amber-50 peer-checked:border-amber-500 peer-checked:text-amber-700 transition-all">ESPERA</div>
-                        </label>
-                        <label class="relative cursor-pointer">
-                            <input type="radio" name="estado" value="activo" id="edit_status_activo" class="peer sr-only">
-                            <div class="px-3 py-2 text-center text-[10px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600 peer-checked:bg-emerald-50 peer-checked:border-emerald-500 peer-checked:text-emerald-700 transition-all">ACTIVO</div>
-                        </label>
-                        <label class="relative cursor-pointer">
-                            <input type="radio" name="estado" value="rechazado" id="edit_status_rechazado" class="peer sr-only">
-                            <div class="px-3 py-2 text-center text-[10px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-700 transition-all">RECHAZO</div>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="pt-4 flex gap-3">
-                    <button type="button" onclick="closeEditUserModal()" class="flex-1 py-3 text-sm font-bold text-slate-500 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">Cancelar</button>
-                    <button type="submit" class="flex-2 px-8 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition-all">Guardar Cambios</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <script>
         lucide.createIcons();
 
-        function openEditUserModal(user) {
-            document.getElementById('edit_id').value = user.id;
-            document.getElementById('edit_nombre').value = user.nombre;
-            document.getElementById('edit_correo').value = user.correo;
-            document.getElementById('edit_tipo').value = user.tipo_usuario;
-            document.getElementById('edit_rol').value = user.rol;
-            
-            // Radio buttons for status
-            if(user.estado === 'pendiente') document.getElementById('edit_status_pendiente').checked = true;
-            if(user.estado === 'activo') document.getElementById('edit_status_activo').checked = true;
-            if(user.estado === 'rechazado') document.getElementById('edit_status_rechazado').checked = true;
-            
-            const modal = document.getElementById('editUserModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.style.overflow = 'hidden';
-            if(typeof lucide !== 'undefined') lucide.createIcons();
-        }
-
-        function closeEditUserModal() {
-            const modal = document.getElementById('editUserModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.style.overflow = '';
-        }
-
-        // ============================================== 
-        // EDIT DOCUMENT MODAL LOGIC                   
-        // ============================================== 
-        function openEditDocModal(doc) {
-            document.getElementById('edit_doc_id').value = doc.id;
-            document.getElementById('edit_doc_titulo').value = doc.titulo;
-            document.getElementById('edit_doc_tipo').value = doc.tipo || '';
-            document.getElementById('edit_doc_resumen').value = doc.resumen || '';
-            document.getElementById('edit_doc_status').value = doc.estado_publicacion;
-            
-            // Limpiar inputs de archivo
-            document.getElementById('edit_doc_pdf').value = '';
-            document.getElementById('edit_doc_portada').value = '';
-            
-            const modal = document.getElementById('editDocModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.style.overflow = 'hidden';
-            if(typeof lucide !== 'undefined') lucide.createIcons();
-        }
-
-        function closeEditDocModal() {
-            const modal = document.getElementById('editDocModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.style.overflow = '';
-        }
 
         // Biblioteca Search Logic
         (function() {
@@ -914,13 +902,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
             }
 
+            let currentBibStatus = 'todos';
+            let currentBibType = 'todos';
+
+            window.changeBibTypeFilter = function(type) {
+                currentBibType = type;
+                
+                // Update UI: Toggle classes on type buttons
+                document.querySelectorAll('.bib-type-btn').forEach(btn => {
+                    const isActive = btn.dataset.type === type;
+                    if (isActive) {
+                        btn.classList.add('bg-slate-900', 'text-white', 'border-slate-900', 'shadow-md', 'shadow-slate-900/10');
+                        btn.classList.remove('bg-white', 'text-slate-600', 'border-slate-200', 'hover:border-slate-300');
+                    } else {
+                        btn.classList.remove('bg-slate-900', 'text-white', 'border-slate-900', 'shadow-md', 'shadow-slate-900/10');
+                        btn.classList.add('bg-white', 'text-slate-600', 'border-slate-200', 'hover:border-slate-300');
+                    }
+                });
+
+                // Trigger Search
+                window.searchBiblioteca(input.value.trim(), 1);
+            };
+
+            window.changeBibFilter = function(status) {
+                currentBibStatus = status;
+                
+                // Update UI: Toggle classes on buttons
+                document.querySelectorAll('.bib-filter-btn').forEach(btn => {
+                    const isActive = btn.dataset.status === status;
+                    if (isActive) {
+                        btn.classList.add('bg-white', 'text-emerald-900', 'shadow-sm');
+                        btn.classList.remove('text-slate-500', 'hover:text-slate-700');
+                    } else {
+                        btn.classList.remove('bg-white', 'text-emerald-900', 'shadow-sm');
+                        btn.classList.add('text-slate-500', 'hover:text-slate-700');
+                    }
+                });
+
+                // Trigger Search
+                window.searchBiblioteca(input.value.trim(), 1);
+            };
+
             window.searchBiblioteca = function(q, p = 1) {
-                fetch(`api_buscar_biblioteca.php?q=${encodeURIComponent(q)}&p=${p}`)
+                fetch(`api_buscar_biblioteca.php?q=${encodeURIComponent(q)}&p=${p}&status=${currentBibStatus}&type=${currentBibType}`)
                     .then(r => r.json())
                     .then(data => {
                         // Render Rows
                         if (data.results.length === 0) {
-                            tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-12 text-center text-slate-400 italic">No se encontraron resultados para "${escapeHTML(q)}"</td></tr>`;
+                            tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 italic">No se encontraron resultados para "${escapeHTML(q)}"</td></tr>`;
                             paginationEl.innerHTML = '';
                             return;
                         }
@@ -935,26 +964,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                         <div class="text-xs font-bold text-slate-900">${escapeHTML(d.titulo)}</div>
                                     </div>
                                 </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase transition-all
+                                        ${d.tipo === 'articulo' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 
+                                          d.tipo === 'tesis' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-purple-50 text-purple-600 border border-purple-100'}">
+                                        ${escapeHTML(d.tipo)}
+                                    </span>
+                                </td>
                                 <td class="px-6 py-4 text-xs text-slate-600 font-medium">${escapeHTML(d.autor_nombre)}</td>
                                 <td class="px-6 py-4">
                                     <span class="px-2 py-0.5 rounded-full text-[8px] font-extrabold uppercase 
                                         ${d.estado_publicacion === 'publicado' ? 'bg-emerald-100 text-emerald-700' : 
-                                          (d.estado_publicacion === 'borrador' ? 'bg-slate-100 text-slate-500' : 'bg-amber-100 text-amber-700')}">
+                                          d.estado_publicacion === 'borrador' ? 'bg-slate-100 text-slate-600' : 
+                                          d.estado_publicacion === 'suspendido' ? 'bg-amber-100 text-amber-700' :
+                                          d.estado_publicacion === 'rechazado' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}">
                                         ${d.estado_publicacion}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex justify-end gap-2">
-                                        <button onclick='openEditDocModal(${JSON.stringify(d)})' 
+                                        <a href="modificar_articulo.php?edit=${d.id}" 
                                                 class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all" 
-                                                title="Modificar Metadatos">
+                                                title="Modificar Documento">
                                             <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                                        </button>
-                                        <a href="${d.archivo_documento}" target="_blank" 
-                                           class="p-2 bg-slate-50 text-slate-600 rounded-lg hover:bg-slate-200 transition-all" 
-                                           title="Ver Documento">
-                                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                                         </a>
+                                        <button onclick="openDocumentViewer('${d.archivo_documento}', '${d.titulo.replace(/'/g, "\\'")}')" 
+                                                class="p-2 bg-slate-50 text-slate-600 rounded-lg hover:bg-slate-200 transition-all" 
+                                                title="Ver Documento">
+                                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -1010,83 +1048,144 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 });
             }
         })();
-
-        // Responsive Sidebar Toggle
-        document.querySelector('button.md\\:hidden').addEventListener('click', () => {
-             const sidebar = document.querySelector('aside');
-             sidebar.classList.toggle('hidden');
-             sidebar.classList.toggle('fixed');
-             sidebar.classList.toggle('inset-y-0');
-             sidebar.classList.toggle('left-0');
-        });
     </script>
+
     <!-- ============================================== -->
-    <!-- EDIT DOCUMENT MODAL                         -->
+    <!-- SECURE DOCUMENT VIEWER MODAL (PDF.js)        -->
     <!-- ============================================== -->
-    <div id="editDocModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeEditDocModal()"></div>
-        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden relative flex flex-col animate-in fade-in zoom-in duration-200">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-emerald-50/30">
-                <h3 class="font-bold text-slate-900 flex items-center gap-2">
-                    <i data-lucide="file-edit" class="w-5 h-5 text-emerald-600"></i> Editar Documento
-                </h3>
-                <button onclick="closeEditDocModal()" class="text-slate-400 hover:text-slate-600 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <div id="documentViewerModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 md:p-6 lg:p-10">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onclick="closeDocumentViewer()"></div>
+        
+        <!-- Modal Content -->
+        <div class="bg-white w-full max-w-6xl h-full rounded-2xl shadow-2xl overflow-hidden relative flex flex-col animate-in fade-in zoom-in duration-300">
+            
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-blue-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-900/20">
+                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 id="viewerTitle" class="font-bold text-slate-900 text-sm md:text-base line-clamp-1">Documento</h3>
+                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest flex items-center gap-1">
+                            <i data-lucide="shield-check" class="w-3 h-3 text-green-500"></i> Vista Protegida Administrativa
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <a id="downloadPDFBtn" href="#" download class="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-all group" title="Descargar PDF Original">
+                        <i data-lucide="download" class="w-6 h-6"></i>
+                    </a>
+                    <button onclick="closeDocumentViewer()" class="p-2 hover:bg-slate-100 rounded-full transition-colors group">
+                        <i data-lucide="x" class="w-6 h-6 text-slate-400 group-hover:text-slate-600"></i>
+                    </button>
+                </div>
             </div>
             
-            <form action="admin_biblioteca.php?modulo=recursos" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
-                <input type="hidden" name="action" value="editar_documento">
-                <input type="hidden" name="id_doc" id="edit_doc_id">
-                
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Título del Documento</label>
-                    <input type="text" name="titulo" id="edit_doc_titulo" required
-                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 transition-all outline-none">
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Tipo de Recurso</label>
-                        <select name="tipo_doc" id="edit_doc_tipo" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 transition-all outline-none">
-                            <option value="articulo">Artículo Científico</option>
-                            <option value="tesis">Tesis Académica</option>
-                            <option value="acervo">Acervo General</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Estado de Publicación</label>
-                        <select name="estado_publicacion" id="edit_doc_status" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 transition-all outline-none">
-                            <option value="publicado">Publicado (Visible)</option>
-                            <option value="borrador">Borrador (Oculto)</option>
-                            <option value="rechazado">Rechazado (Oculto)</option>
-                        </select>
+            <!-- Viewer Body -->
+            <div class="flex-grow bg-slate-100 relative overflow-y-auto custom-scrollbar" id="modal-scroll-container">
+                <div id="pdf-render-container" class="flex flex-col items-center p-6 md:p-10" oncontextmenu="return false;">
+                    <!-- PDF pages will spend here -->
+                    <div id="pdf-loader" class="flex flex-col items-center justify-center py-32 text-blue-900">
+                        <div class="animate-spin rounded-full h-14 w-14 border-b-2 border-blue-900 mb-6"></div>
+                        <p class="text-sm font-bold uppercase tracking-widest text-slate-500">Procesando Documento...</p>
+                        <p class="text-xs text-slate-400 mt-2">Preparando entorno de lectura segura</p>
                     </div>
                 </div>
-                
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Descripción / Resumen</label>
-                    <textarea name="resumen" id="edit_doc_resumen" rows="4" 
-                        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 transition-all outline-none resize-none"></textarea>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Reemplazar Portada (Imagen)</label>
-                        <input type="file" name="nueva_portada" id="edit_doc_portada" accept="image/*"
-                            class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 ml-1">Reemplazar PDF</label>
-                        <input type="file" name="nuevo_pdf" id="edit_doc_pdf" accept=".pdf"
-                            class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition-all">
-                    </div>
-                </div>
-
-                <div class="pt-4 flex gap-3">
-                    <button type="button" onclick="closeEditDocModal()" class="flex-1 py-3 text-sm font-bold text-slate-500 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">Cancelar</button>
-                    <button type="submit" class="flex-2 px-8 py-3 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 transition-all">Guardar cambios</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Responsive Sidebar Toggle
+        const menuBtn = document.querySelector('button.md\\:hidden');
+        if (menuBtn) {
+            menuBtn.addEventListener('click', () => {
+                const sidebar = document.querySelector('aside');
+                sidebar.classList.toggle('hidden');
+                sidebar.classList.toggle('fixed');
+                sidebar.classList.toggle('inset-y-0');
+                sidebar.classList.toggle('left-0');
+            });
+        }
+        
+        // VISOR DE DOCUMENTOS PROTEGIDO (PDF.js)
+        async function openDocumentViewer(url, title = "Documento") {
+            const modal = document.getElementById('documentViewerModal');
+            const container = document.getElementById('pdf-render-container');
+            const loader = document.getElementById('pdf-loader');
+            const scrollContainer = document.getElementById('modal-scroll-container');
+            const viewerTitle = document.getElementById('viewerTitle');
+            
+            if (viewerTitle) viewerTitle.textContent = title;
+            const downloadBtn = document.getElementById('downloadPDFBtn');
+            if (downloadBtn) {
+                downloadBtn.href = url;
+                // Intentar poner un nombre de archivo amigable
+                const fileName = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + ".pdf";
+                downloadBtn.setAttribute('download', fileName);
+            }
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; 
+            scrollContainer.scrollTop = 0;
+            
+            // Forzar renderizado de iconos Lucide (incluyendo el de descarga)
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            // Limpiar contenido previo excepto el loader
+            Array.from(container.children).forEach(child => {
+                if(child.id !== 'pdf-loader') child.remove();
+            });
+            loader.style.display = 'flex';
+
+            try {
+                const loadingTask = pdfjsLib.getDocument(url);
+                const pdf = await loadingTask.promise;
+                
+                loader.style.display = 'none';
+
+                // Renderizar todas las páginas
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    
+                    container.appendChild(canvas);
+                    
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise;
+                }
+            } catch (error) {
+                console.error('Error al cargar PDF:', error);
+                loader.innerHTML = `
+                    <div class="bg-red-50 p-6 rounded-2xl border border-red-100 flex flex-col items-center">
+                        <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500 mb-4"></i>
+                        <p class="text-sm font-bold text-red-600 uppercase tracking-wider">Error de acceso</p>
+                        <p class="text-xs text-red-400 mt-1">No se pudo cargar el documento original</p>
+                    </div>
+                `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }
+
+        function closeDocumentViewer() {
+            const modal = document.getElementById('documentViewerModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = ''; 
+        }
+    </script>
 </body>
 </html>

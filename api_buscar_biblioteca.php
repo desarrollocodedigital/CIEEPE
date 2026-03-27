@@ -13,6 +13,8 @@ if (!isset($_SESSION['user_bib_id'])) {
 header('Content-Type: application/json');
 
 $busqueda = trim($_GET['q'] ?? '');
+$status = $_GET['status'] ?? 'todos';
+$type_filter = $_GET['type'] ?? 'todos';
 $pagina = isset($_GET['p']) ? (int)$_GET['p'] : 1;
 if ($pagina < 1) $pagina = 1;
 
@@ -20,14 +22,26 @@ $por_pagina = 10;
 $offset = ($pagina - 1) * $por_pagina;
 
 $params = [];
-$where = '';
+$where_clauses = [];
 
 if ($busqueda !== '') {
-    // Buscar por título del documento o nombre del autor
-    $where = "WHERE (d.titulo LIKE ? OR u.nombre LIKE ?)";
+    $where_clauses[] = "(d.titulo LIKE ? OR u.nombre LIKE ?)";
     $like = '%' . $busqueda . '%';
-    $params = [$like, $like];
+    $params[] = $like;
+    $params[] = $like;
 }
+
+if ($status !== 'todos') {
+    $where_clauses[] = "d.estado_publicacion = ?";
+    $params[] = $status;
+}
+
+if ($type_filter !== 'todos') {
+    $where_clauses[] = "d.tipo = ?";
+    $params[] = $type_filter;
+}
+
+$where = !empty($where_clauses) ? 'WHERE ' . implode(' AND ', $where_clauses) : '';
 
 // Count total
 $stmt_count = $pdo->prepare("SELECT COUNT(*) FROM documentos_biblioteca d JOIN usuarios_biblioteca u ON d.id_autor = u.id $where");
