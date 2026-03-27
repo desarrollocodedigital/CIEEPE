@@ -1,4 +1,16 @@
-<?php require_once 'conexion.php'; ?>
+<?php 
+session_start();
+require_once 'conexion.php'; 
+
+// Datos del usuario logueado en la biblioteca
+$isLoggedBib = isset($_SESSION['user_bib_id']);
+$userNameBib = $isLoggedBib ? $_SESSION['user_bib_nombre'] : '';
+
+// Obtener documentos publicados
+$stmt = $pdo->prepare("SELECT d.*, u.nombre as autor_nombre FROM documentos_biblioteca d JOIN usuarios_biblioteca u ON d.id_autor = u.id WHERE d.estado_publicacion = 'publicado' ORDER BY d.fecha_subida DESC");
+$stmt->execute();
+$documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -8,6 +20,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
     <title>Biblioteca Digital | CIEEPE</title>
     <style>
         body {
@@ -242,12 +259,31 @@
 
             <!-- Navegación -->
             <nav id="navbar" class="flex items-center">
-                <div class="hidden md:flex space-x-6 lg:space-x-8 mr-6">
+                <div class="hidden md:flex items-center space-x-6 lg:space-x-8 mr-6">
                     <a href="index.html#inicio" class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Inicio</a>
                     <a href="proyectos.php" class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Proyectos</a>
                     <a href="noticias.php" class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Noticias</a>
                     <a href="investigadores.php" class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Equipo</a>
                     <a href="biblioteca.php" class="nav-link text-sm font-medium text-blue-600">CIATA</a>
+                    <?php if (isset($_SESSION['user_bib_rol']) && $_SESSION['user_bib_rol'] === 'admin'): ?>
+                    <a href="admin_biblioteca.php" class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Administración</a>
+                    <?php endif; ?>
+                    
+                    <?php if (isset($_SESSION['user_bib_rol']) && in_array($_SESSION['user_bib_rol'], ['admin', 'investigador'])): ?>
+                    <a href="subir_articulo.php" class="nav-link text-sm font-medium text-emerald-600 hover:text-emerald-700 font-bold border-b-2 border-emerald-500">Añadir Artículo</a>
+                    <?php endif; ?>
+                    
+                    <?php if ($isLoggedBib): ?>
+                    <div class="flex items-center gap-4 ml-4 pl-4 border-l border-slate-200">
+                        <span class="text-sm font-semibold text-slate-700">Hola, <?= htmlspecialchars($userNameBib) ?></span>
+                        <a href="logout_biblioteca.php?redirect=biblioteca.php" class="text-xs font-bold text-red-600 hover:text-red-700 uppercase tracking-wider">Salir</a>
+                    </div>
+                    <?php else: ?>
+                    <div class="flex items-center gap-4 ml-4">
+                        <a href="login_biblioteca.php?redirect=biblioteca.php" class="text-sm font-bold text-blue-900 border border-blue-900 px-4 py-1.5 rounded-lg hover:bg-blue-900 hover:text-white transition-all">Ingresar</a>
+                        <a href="registro_biblioteca.php" class="text-sm font-bold text-white bg-blue-900 px-4 py-1.5 rounded-lg hover:bg-blue-800 transition-all shadow-md">Registrarse</a>
+                    </div>
+                    <?php endif; ?>
                 </div>
                 <button id="mobile-menu-btn" class="md:hidden focus:outline-none text-gray-700">
                     <i data-lucide="menu" class="w-6 h-6"></i>
@@ -259,6 +295,25 @@
                     <a href="noticias.php" class="font-medium">Noticias</a>
                     <a href="investigadores.php" class="font-medium">Equipo</a>
                     <a href="biblioteca.php" class="font-medium text-blue-600">CIATA</a>
+                    <?php if (isset($_SESSION['user_bib_rol']) && $_SESSION['user_bib_rol'] === 'admin'): ?>
+                    <a href="admin_biblioteca.php" class="font-medium text-gray-700">Administración</a>
+                    <?php endif; ?>
+
+                    <?php if (isset($_SESSION['user_bib_rol']) && in_array($_SESSION['user_bib_rol'], ['admin', 'investigador'])): ?>
+                    <a href="subir_articulo.php" class="font-bold text-emerald-600">Añadir Artículo</a>
+                    <?php endif; ?>
+                    
+                    <?php if ($isLoggedBib): ?>
+                    <div class="pt-4 border-t border-slate-100 flex flex-col space-y-2">
+                        <p class="text-sm font-bold text-slate-900">Hola, <?= htmlspecialchars($userNameBib) ?></p>
+                        <a href="logout_biblioteca.php?redirect=biblioteca.php" class="text-red-600 font-bold">Cerrar Sesión</a>
+                    </div>
+                    <?php else: ?>
+                    <div class="pt-4 border-t border-slate-100 flex flex-col space-y-3">
+                        <a href="login_biblioteca.php?redirect=biblioteca.php" class="font-bold text-blue-900">Iniciar Sesión</a>
+                        <a href="registro_biblioteca.php" class="font-bold text-blue-900">Registrarse</a>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </nav>
         </div>
@@ -338,9 +393,20 @@
         </section>
     </main>
 
+    <footer class="bg-gray-900 text-white py-12 border-t border-gray-800">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <div class="col-span-1 md:col-span-2">
+                    <h3 class="text-2xl font-bold mb-4">CIEEPE | ENEES</h3>
+                    <p class="text-gray-400 max-w-sm mb-6">
+                        Centro de Investigación de Educación Especial y Políticas Educativas.
+                        Generando conocimiento para una educación más inclusiva y justa.
+                    </p>
+                    <div class="flex space-x-4">
+                        <div class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors cursor-pointer">
+                            <i data-lucide="globe" class="w-5 h-5"></i>
                         </div>
-                        <div
-                            class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors cursor-pointer">
+                        <div class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors cursor-pointer">
                             <i data-lucide="mail" class="w-5 h-5"></i>
                         </div>
                     </div>
@@ -349,28 +415,20 @@
                 <div>
                     <h4 class="text-lg font-semibold mb-4 text-gray-200">Enlaces Rápidos</h4>
                     <ul class="space-y-2">
-                        <li><a href="index.html" class="text-gray-400 hover:text-white transition-colors">Inicio</a>
-                        </li>
-                        <li><a href="index.html#nosotros"
-                                class="text-gray-400 hover:text-white transition-colors">Nosotros</a></li>
-                        <li><a href="index.html#investigacion"
-                                class="text-gray-400 hover:text-white transition-colors">Líneas de Investigación</a>
-                        </li>
-                        <li><a href="noticias.php"
-                                class="text-gray-400 hover:text-white transition-colors">Noticias</a></li>
-                        <li><a href="biblioteca.php"
-                                class="text-blue-400 hover:text-white transition-colors font-medium">Biblioteca Virtual
-                                (IA)</a></li>
-                        <li><a href="investigadores.php"
-                                class="text-gray-400 hover:text-white transition-colors">Equipo</a></li>
+                        <li><a href="index.html#inicio" class="text-gray-400 hover:text-white transition-colors">Inicio</a></li>
+                        <li><a href="index.html#nosotros" class="text-gray-400 hover:text-white transition-colors">Nosotros</a></li>
+                        <li><a href="index.html#investigacion" class="text-gray-400 hover:text-white transition-colors">Líneas de Investigación</a></li>
+                        <li><a href="proyectos.php" class="text-gray-400 hover:text-white transition-colors">Proyectos</a></li>
+                        <li><a href="noticias.php" class="text-gray-400 hover:text-white transition-colors">Noticias</a></li>
+                        <li><a href="biblioteca.php" class="text-blue-400 hover:text-white transition-colors font-medium">Biblioteca Virtual (IA)</a></li>
+                        <li><a href="investigadores.php" class="text-gray-400 hover:text-white transition-colors">Equipo</a></li>
                     </ul>
                 </div>
 
                 <div>
                     <h4 class="text-lg font-semibold mb-4 text-gray-200">Legal</h4>
                     <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Aviso de Privacidad</a>
-                        </li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Aviso de Privacidad</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Transparencia</a></li>
                         <li><a href="#" class="text-gray-400 hover:text-white transition-colors">ENEES Oficial</a></li>
                     </ul>
@@ -378,8 +436,7 @@
             </div>
 
             <div class="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
-                <p>&copy; <span id="footerYear"></span> CIEEPE - Escuela Normal de Especialización del Estado de
-                    Sinaloa. Todos los derechos reservados.</p>
+                <p>&copy; <span id="footerYear"></span> CIEEPE - Escuela Normal de Especialización del Estado de Sinaloa. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>
@@ -429,19 +486,44 @@
                     <p id="modalDesc" class="text-slate-600 text-sm leading-relaxed"></p>
                 </div>
 
-                <div class="flex flex-wrap gap-4">
-                    <button
-                        class="flex-1 bg-blue-900 text-white py-3 rounded-xl font-bold hover:bg-blue-800 transition-all flex items-center justify-center gap-2">
-                        <i data-lucide="download" class="w-4 h-4"></i> Leer Documento
-                    </button>
-                    <button class="bg-slate-100 text-slate-700 p-3 rounded-xl hover:bg-slate-200 transition-all"
-                        title="Guardar a favoritos">
-                        <i data-lucide="bookmark" class="w-5 h-5"></i>
-                    </button>
-                    <button class="bg-slate-100 text-slate-700 p-3 rounded-xl hover:bg-slate-200 transition-all"
-                        title="Citar (APA)">
-                        <i data-lucide="quote" class="w-5 h-5"></i>
-                    </button>
+                <div class="flex flex-col gap-6">
+                    <?php if ($isLoggedBib): ?>
+                    <div class="flex flex-wrap gap-4">
+                        <button id="readBtn"
+                            class="flex-1 bg-blue-900 text-white py-3 rounded-xl font-bold hover:bg-blue-800 transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="book-open" class="w-4 h-4"></i> Leer Documento
+                        </button>
+                        <button class="bg-slate-100 text-slate-700 p-3 rounded-xl hover:bg-slate-200 transition-all"
+                            title="Guardar a favoritos">
+                            <i data-lucide="bookmark" class="w-5 h-5"></i>
+                        </button>
+                        <button class="bg-slate-100 text-slate-700 p-3 rounded-xl hover:bg-slate-200 transition-all"
+                            title="Citar (APA)">
+                            <i data-lucide="quote" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <?php else: ?>
+                    <div class="bg-slate-50 border border-slate-200 rounded-3xl p-8 text-center relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-blue-100/50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                        <div class="relative z-10">
+                            <div class="w-14 h-14 bg-white text-blue-900 rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-4 border border-blue-50/50">
+                                <i data-lucide="lock" class="w-7 h-7"></i>
+                            </div>
+                            <h4 class="text-slate-900 font-bold text-lg mb-2">Lectura Protegida</h4>
+                            <p class="text-slate-500 text-sm mb-6 max-w-sm mx-auto">Para acceder a este documento y ver el material completo del acervo CIATA, es necesario contar con una cuenta.</p>
+                            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                                <a href="login_biblioteca.php?redirect=biblioteca.php" 
+                                   class="bg-blue-900 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-black transition-all shadow-lg shadow-blue-900/10 active:scale-95 text-center">
+                                    Iniciar Sesión
+                                </a>
+                                <a href="registro_biblioteca.php" 
+                                   class="bg-white text-blue-900 border border-blue-100 px-8 py-3 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all active:scale-95 text-center">
+                                    Crear Cuenta
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -589,23 +671,23 @@
         // ============================
         // LIBRARY DATA (Real researchers)
         // ============================
-        const books = [
-            { id: 1, title: "Estrategias de Inclusión en Educación Básica", author: "Dra. Esmeralda Sánchez", year: "2024", category: "tesis", color: "#1e3a8a", desc: "Un análisis exhaustivo sobre los métodos pedagógicos contemporáneos para integrar estudiantes con capacidades diferentes en el aula regular, basado en un estudio de tres años en escuelas de Sinaloa." },
-            { id: 2, title: "Neuroeducación y Aprendizaje Emocional", author: "Dra. Gloria Noriega", year: "2023", category: "libro", color: "#6b21a8", desc: "Explora la conexión biológica entre las emociones y la retención de conocimientos, ofreciendo herramientas prácticas para docentes de nivel superior." },
-            { id: 3, title: "Políticas Públicas para la Diversidad Educativa", author: "Dr. Ignacio Santiesteban", year: "2022", category: "articulo", color: "#15803d", desc: "Revisión crítica de las políticas educativas actuales en México y su impacto real en las comunidades rurales e indígenas." },
-            { id: 4, title: "Tecnologías Asistivas en el Aula Inclusiva", author: "Dr. Jorge Trujillo Segoviano", year: "2024", category: "libro", color: "#c2410c", desc: "Manual técnico y pedagógico sobre el uso de software y hardware especializado para el apoyo educativo personalizado." },
-            { id: 5, title: "Evaluación Formativa y Equidad en Educación Especial", author: "Dr. Jesús Tadeo", year: "2021", category: "articulo", color: "#0e7490", desc: "Propuesta de un nuevo paradigma de evaluación que considere los contextos socioeconómicos de los alumnos para una medición más justa del aprendizaje." },
-            { id: 6, title: "El Rol del Docente en la Educación Especial", author: "Dra. Bertha Margarita Salas", year: "2023", category: "tesis", color: "#be123c", desc: "Investigación sobre la formación continua de los docentes y su resiliencia en entornos de educación especial de alta demanda en el estado de Sinaloa." },
-            { id: 7, title: "Barreras para el Aprendizaje y la Participación", author: "Dra. Elizabeth Cárdenas Pérez", year: "2022", category: "tesis", color: "#4338ca", desc: "Identificación de los obstáculos estructurales dentro de las instituciones educativas que impiden el pleno desarrollo de los alumnos con necesidades especiales." },
-            { id: 8, title: "Gestión Escolar Inclusiva: Modelos y Prácticas", author: "Dr. Pedro Zamudio", year: "2024", category: "libro", color: "#065f46", desc: "Guía para directivos sobre cómo transformar la cultura organizacional de una escuela hacia un modelo totalmente inclusivo." },
-            { id: 9, title: "Discapacidad Auditiva y Lengua de Señas Mexicana", author: "Mtra. Karin Yovana Quijada Lovatón", year: "2021", category: "libro", color: "#b45309", desc: "Compendio de estrategias de comunicación y enseñanza para alumnos sordos en contextos de educación básica y superior." },
-            { id: 10, title: "Autismo: Estrategias de Intervención Educativa", author: "Dra. Adriana Serrano Vizcarra", year: "2023", category: "articulo", color: "#701a75", desc: "Protocolos actualizados para el apoyo de estudiantes dentro del espectro autista, enfocados en la autonomía académica y social." },
-            { id: 11, title: "Competencias Docentes para la Inclusión", author: "Dr. Luis Díaz", year: "2024", category: "tesis", color: "#1e40af", desc: "Análisis de las competencias profesionales que requieren los docentes para atender efectivamente la diversidad en el aula." },
-            { id: 12, title: "Intervención Educativa en Contextos Vulnerables", author: "Mtra. Imelda Ramos Loaiza", year: "2023", category: "articulo", color: "#7c2d12", desc: "Estudio cualitativo sobre las estrategias de intervención pedagógica en comunidades con alto índice de marginación." },
-            { id: 13, title: "Normativas Internacionales de Educación Inclusiva", author: "Dr. Héctor Salazar Reyes", year: "2022", category: "libro", color: "#166534", desc: "Compendio de marcos legales y normativos internacionales que rigen la educación inclusiva, con análisis comparativo para el contexto mexicano." },
-            { id: 14, title: "Formación Continua del Profesorado", author: "Mtra. Irene Rodríguez Avitia", year: "2024", category: "tesis", color: "#581c87", desc: "Investigación sobre programas de desarrollo profesional continuo y su impacto en la práctica docente dentro de la educación especial." },
-            { id: 15, title: "Liderazgo Educativo Transformacional", author: "Dr. Juan Luis Zamora Uribe", year: "2023", category: "articulo", color: "#0c4a6e", desc: "Propuesta de un modelo de liderazgo escolar que promueva la innovación pedagógica y la equidad educativa en instituciones formadoras de docentes." }
-        ];
+        const books = <?php echo json_encode($documentosDB); ?>.map(doc => {
+            // Asignar un color aleatorio si no tiene uno definido (para el diseño de portadas genéricas)
+            const colors = ["#1e3a8a", "#6b21a8", "#15803d", "#c2410c", "#0e7490", "#be123c"];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            return {
+                id: doc.id,
+                title: doc.titulo,
+                author: doc.autor_nombre,
+                year: new Date(doc.fecha_subida).getFullYear(),
+                category: doc.tipo,
+                color: randomColor,
+                desc: doc.resumen,
+                cover: doc.imagen_portada,
+                file: doc.archivo_documento
+            };
+        });
 
         let currentCategory = 'all';
         let searchQuery = '';
@@ -638,12 +720,15 @@
 
                     card.innerHTML = `
                         <div class="h-48 relative overflow-hidden flex items-center justify-center p-6 border-b border-slate-50" style="background-color: ${book.color}15">
-                            <div class="w-24 h-32 bg-white rounded shadow-lg border-l-4 border-slate-900 flex flex-col justify-end p-2 relative" style="border-left-color: ${book.color}">
-                                <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(circle, #000 1px, transparent 1px); background-size: 10px 10px;"></div>
-                                <div class="w-full h-1 bg-slate-100 mb-1 rounded"></div>
-                                <div class="w-2/3 h-1 bg-slate-100 rounded"></div>
-                                <i data-lucide="file-text" class="absolute top-2 right-2 w-3 h-3 text-slate-300"></i>
-                            </div>
+                            ${book.cover ? 
+                                `<img src="${book.cover}" class="w-24 h-32 object-cover rounded shadow-lg border border-white/50">` : 
+                                `<div class="w-24 h-32 bg-white rounded shadow-lg border-l-4 border-slate-900 flex flex-col justify-end p-2 relative" style="border-left-color: ${book.color}">
+                                    <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(circle, #000 1px, transparent 1px); background-size: 10px 10px;"></div>
+                                    <div class="w-full h-1 bg-slate-100 mb-1 rounded"></div>
+                                    <div class="w-2/3 h-1 bg-slate-100 rounded"></div>
+                                    <i data-lucide="file-text" class="absolute top-2 right-2 w-3 h-3 text-slate-300"></i>
+                                </div>`
+                            }
                         </div>
                         <div class="p-4 flex-grow flex flex-col">
                             <div class="flex justify-between items-start mb-2">
@@ -694,10 +779,24 @@
             document.getElementById('modalDesc').textContent = book.desc;
             document.getElementById('modalCategory').textContent = book.category;
             const cover = document.getElementById('modalCover');
-            cover.style.backgroundColor = book.color + '20';
-            cover.style.color = book.color;
-            cover.style.borderColor = book.color;
-            document.getElementById('modalCoverTitle').textContent = book.category;
+            if (book.cover) {
+                cover.innerHTML = `<img src="${book.cover}" class="w-full h-full object-cover rounded-lg">`;
+                cover.style.backgroundColor = 'transparent';
+                cover.style.borderColor = 'transparent';
+            } else {
+                cover.innerHTML = `
+                    <i data-lucide="book" class="w-12 h-12 mb-4 opacity-30"></i>
+                    <p id="modalCoverTitle" class="text-xs font-bold uppercase">${book.category}</p>
+                `;
+                cover.style.backgroundColor = book.color + '20';
+                cover.style.color = book.color;
+                cover.style.borderColor = book.color;
+            }
+            // Actualizar link de lectura
+            const readBtn = document.getElementById('readBtn');
+            if (readBtn) {
+                readBtn.onclick = () => openDocumentViewer(book.file, book.title);
+            }
             bookModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
             lucide.createIcons();
@@ -1234,8 +1333,117 @@
             });
 
         })();
+
+        // ============================
+        // VISOR DE DOCUMENTOS PROTEGIDO (PDF.js)
+        // ============================
+        async function openDocumentViewer(url, title = "Documento") {
+            const modal = document.getElementById('documentViewerModal');
+            const container = document.getElementById('pdf-render-container');
+            const loader = document.getElementById('pdf-loader');
+            const scrollContainer = document.getElementById('modal-scroll-container');
+            const viewerTitle = document.getElementById('viewerTitle');
+            
+            if (viewerTitle) viewerTitle.textContent = title;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; 
+            scrollContainer.scrollTop = 0;
+
+            // Limpiar contenido previo excepto el loader
+            Array.from(container.children).forEach(child => {
+                if(child.id !== 'pdf-loader') child.remove();
+            });
+            loader.style.display = 'flex';
+
+            try {
+                const loadingTask = pdfjsLib.getDocument(url);
+                const pdf = await loadingTask.promise;
+                
+                loader.style.display = 'none';
+
+                // Renderizar todas las páginas
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    canvas.className = 'max-w-full shadow-2xl border border-slate-200 bg-white mb-8 rounded-sm';
+                    
+                    container.appendChild(canvas);
+                    
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise;
+                }
+            } catch (error) {
+                console.error('Error al cargar PDF:', error);
+                loader.innerHTML = `
+                    <div class="bg-red-50 p-6 rounded-2xl border border-red-100 flex flex-col items-center">
+                        <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500 mb-4"></i>
+                        <p class="text-sm font-bold text-red-600 uppercase tracking-wider">Error de acceso</p>
+                        <p class="text-xs text-red-400 mt-1">No se pudo cargar el documento original</p>
+                    </div>
+                `;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }
+
+        function closeDocumentViewer() {
+            const modal = document.getElementById('documentViewerModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = ''; 
+        }
     </script>
 
-</body>
+    <!-- ============================================== -->
+    <!-- SECURE DOCUMENT VIEWER MODAL (PDF.js)        -->
+    <!-- ============================================== -->
+    <div id="documentViewerModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 md:p-6 lg:p-10">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onclick="closeDocumentViewer()"></div>
+        
+        <!-- Modal Content -->
+        <div class="bg-white w-full max-w-6xl h-full rounded-2xl shadow-2xl overflow-hidden relative flex flex-col animate-in fade-in zoom-in duration-300">
+            
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-blue-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-900/20">
+                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 id="viewerTitle" class="font-bold text-slate-900 text-sm md:text-base line-clamp-1">Documento</h3>
+                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest flex items-center gap-1">
+                            <i data-lucide="shield-check" class="w-3 h-3 text-green-500"></i> Vista Protegida CIEEPE
+                        </p>
+                    </div>
+                </div>
+                
+                <button onclick="closeDocumentViewer()" class="p-2 hover:bg-slate-100 rounded-full transition-colors group">
+                    <i data-lucide="x" class="w-6 h-6 text-slate-400 group-hover:text-slate-600"></i>
+                </button>
+            </div>
+            
+            <!-- Viewer Body -->
+            <div class="flex-grow bg-slate-100 relative overflow-y-auto custom-scrollbar" id="modal-scroll-container">
+                <div id="pdf-render-container" class="flex flex-col items-center p-6 md:p-10" oncontextmenu="return false;">
+                    <!-- PDF pages will spend here -->
+                    <div id="pdf-loader" class="flex flex-col items-center justify-center py-32 text-blue-900">
+                        <div class="animate-spin rounded-full h-14 w-14 border-b-2 border-blue-900 mb-6"></div>
+                        <p class="text-sm font-bold uppercase tracking-widest text-slate-500">Procesando Documento...</p>
+                        <p class="text-xs text-slate-400 mt-2">Preparando entorno de lectura segura</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+</body>
 </html>

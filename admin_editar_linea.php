@@ -27,7 +27,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $linea['descripcion'] = trim($_POST['descripcion'] ?? '');
     $linea['icono'] = trim($_POST['icono'] ?? 'book');
     $linea['color'] = trim($_POST['color'] ?? 'blue');
-    $linea['url_saber_mas'] = trim($_POST['url_saber_mas'] ?? '#');
 
     // Validación básica
     if (empty($linea['titulo'])) {
@@ -35,14 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 
     if (empty($error)) {
-        $sql = "UPDATE lineas_investigacion SET titulo = ?, descripcion = ?, icono = ?, color = ?, url_saber_mas = ? WHERE id = ?";
+        $sql = "UPDATE lineas_investigacion SET titulo = ?, descripcion = ?, icono = ?, color = ? WHERE id = ?";
         $stmt = $pdo->prepare($sql);
         if ($stmt->execute([
             $linea['titulo'], 
             $linea['descripcion'], 
             $linea['icono'], 
             $linea['color'],
-            $linea['url_saber_mas'],
             $id
         ])) {
             $mensaje = "Línea de investigación actualizada exitosamente.";
@@ -152,13 +150,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
                                 <i data-lucide="chevron-down" class="w-4 h-4"></i>
                             </div>
-                        </div>
-                    </div>
-                    <div>
-                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">URL "Saber más" *</label>
-                        <div class="relative mt-2">
-                            <i data-lucide="link" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400"></i>
-                            <input type="text" name="url_saber_mas" value="<?= htmlspecialchars($linea['url_saber_mas']) ?>" required class="w-full rounded-lg border-gray-300 border focus:border-blue-500 pl-10 p-2.5 outline-none text-sm shadow-sm bg-gray-50 focus:bg-white">
                         </div>
                     </div>
                 </div>

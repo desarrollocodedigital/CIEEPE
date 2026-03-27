@@ -7,8 +7,7 @@ $linea = [
     'titulo' => '',
     'descripcion' => '',
     'icono' => 'book',
-    'color' => 'blue',
-    'url_saber_mas' => '#'
+    'color' => 'blue'
 ];
 
 // ---> ACCIÓN: CREAR LÍNEA
@@ -17,7 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $linea['descripcion'] = trim($_POST['descripcion'] ?? '');
     $linea['icono'] = trim($_POST['icono'] ?? 'book');
     $linea['color'] = trim($_POST['color'] ?? 'blue');
-    $linea['url_saber_mas'] = trim($_POST['url_saber_mas'] ?? '#');
 
     // Validación básica
     if (empty($linea['titulo'])) {
@@ -25,14 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 
     if (empty($error)) {
-        $sql = "INSERT INTO lineas_investigacion (titulo, descripcion, icono, color, url_saber_mas) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO lineas_investigacion (titulo, descripcion, icono, color) VALUES (?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
         if ($stmt->execute([
             $linea['titulo'], 
             $linea['descripcion'], 
             $linea['icono'], 
-            $linea['color'],
-            $linea['url_saber_mas']
+            $linea['color']
         ])) {
             $_SESSION['mensaje'] = "Línea de investigación creada exitosamente.";
             echo "<script>window.location.href='admin.php?modulo=lineas';</script>";
@@ -129,16 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             </div>
                         </div>
                     </div>
-                    <div>
-                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">URL "Saber más" *</label>
-                        <div class="relative">
-                            <i data-lucide="link" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400"></i>
-                            <input type="text" name="url_saber_mas" value="<?= htmlspecialchars($linea['url_saber_mas']) ?>" required class="w-full rounded-lg border-gray-300 border focus:border-blue-500 pl-10 p-2.5 outline-none text-sm shadow-sm bg-gray-50 focus:bg-white" placeholder="Ej: linea_educacion.html o #">
-                        </div>
-                    </div>
                 </div>
-
-            </div>
             <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end">
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg shadow-sm transition-colors flex items-center">
                     <i data-lucide="save" class="w-4 h-4 mr-2"></i> Crear Línea de Investigación
@@ -155,10 +143,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <li class="flex items-start">
                     <i data-lucide="check" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"></i>
                     Para el icono, solo escribe el nombre exacto como aparece en Lucide (ej. <b>users</b>, <b>brain</b>, <b>lightbulb</b>).
-                </li>
-                <li class="flex items-start">
-                    <i data-lucide="check" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"></i>
-                    Si aún no tienes una página dedicada para 'Saber más', puedes dejar un <b>#</b> o colocar un enlace próximamente.
                 </li>
             </ul>
         </div>
