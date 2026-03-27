@@ -25,10 +25,10 @@ if ($id_edit) {
         exit;
     }
     
-    // Regla de Negocio: Si está publicado, solo el admin puede editar
-    if ($doc_edit['estado_publicacion'] === 'publicado' && $userRol !== 'admin') {
+    // Regla de Negocio CIATA: Si está en revisión (pendiente) o publicado, el autor no puede editar
+    if (in_array($doc_edit['estado_publicacion'], ['publicado', 'pendiente']) && $userRol !== 'admin') {
         $modulo = 'mis_documentos';
-        $error = "Este documento ya ha sido publicado y no puede ser editado por el autor.";
+        $error = "Este documento está en revisión o ya ha sido publicado. No puede ser editado por el autor en este estado.";
         $id_edit = null;
     } else {
         $modulo = 'nuevo'; // Usar el mismo formulario para editar
@@ -43,11 +43,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['subir_documento']) |
     $titulo = trim($_POST['titulo'] ?? '');
     $tipo = $_POST['tipo'] ?? '';
     $resumen = trim($_POST['resumen'] ?? '');
+    $palabras_clave = trim($_POST['palabras_clave'] ?? '');
     $estado_post = $_POST['estado_final'] ?? 'borrador'; // borrador o pendiente
     $es_edicion = isset($_POST['editar_documento']);
+
+    // Nuevos campos dinámicos
+    $institucion = trim($_POST['institucion'] ?? '');
+    $grado = trim($_POST['grado'] ?? '');
+    $asesor = trim($_POST['asesor'] ?? '');
+    $revista = trim($_POST['revista'] ?? '');
+    $issn = trim($_POST['issn'] ?? '');
+    $doi = !empty($_POST['doi']) ? trim($_POST['doi']) : null;
+    $tipo_material = trim($_POST['tipo_material'] ?? '');
+    $categoria_acervo = trim($_POST['categoria_acervo'] ?? '');
+    $derechos = trim($_POST['derechos'] ?? '');
+
+    // Validación de DOI Único
+    if ($doi) {
+        $sqlCheck = "SELECT COUNT(*) FROM documentos_biblioteca WHERE doi = ? " . ($id_edit ? "AND id != ?" : "");
+        $stmtCheck = $pdo->prepare($sqlCheck);
+        $paramsCheck = [$doi];
+        if ($id_edit) $paramsCheck[] = $id_edit;
+        $stmtCheck->execute($paramsCheck);
+        if ($stmtCheck->fetchColumn() > 0) {
+            $error = "El DOI '$doi' ya se encuentra registrado en otro documento de la biblioteca.";
+        }
+    }
     
     // Validar campos básicos
-    if (empty($titulo) || empty($tipo) || empty($resumen)) {
+    if ($error) {
+        // Ya hay error previo (ej: DOI duplicado)
+    } else if (empty($titulo) || empty($tipo) || empty($resumen)) {
         $error = "El título, tipo y resumen son obligatorios.";
     } else {
         $archivo = $_FILES['archivo'];
@@ -96,9 +122,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['subir_documento']) |
         if ($continuar) {
             if ($es_edicion) {
                 // UPDATE
-                $sql = "UPDATE documentos_biblioteca SET titulo = ?, tipo = ?, resumen = ?, imagen_portada = ?, archivo_documento = ?, estado_publicacion = ? WHERE id = ?";
+                $sql = "UPDATE documentos_biblioteca SET 
+                        titulo = ?, tipo = ?, resumen = ?, palabras_clave = ?,
+                        imagen_portada = ?, archivo_documento = ?, estado_publicacion = ?,
+                        institucion = ?, grado = ?, asesor = ?,
+                        revista = ?, issn = ?, doi = ?,
+                        tipo_material = ?, categoria_acervo = ?, derechos = ?
+                        WHERE id = ?";
                 $stmt = $pdo->prepare($sql);
-                if ($stmt->execute([$titulo, $tipo, $resumen, $rutaPortada, $rutaArchivo, $estado_post, $id_edit])) {
+                if ($stmt->execute([
+                    $titulo, $tipo, $resumen, $palabras_clave,
+                    $rutaPortada, $rutaArchivo, $estado_post,
+                    $institucion, $grado, $asesor,
+                    $revista, $issn, $doi,
+                    $tipo_material, $categoria_acervo, $derechos,
+                    $id_edit
+                ])) {
                     $success = "Documento actualizado correctamente.";
                     // Recargar datos si es necesario
                     $stmt = $pdo->prepare("SELECT * FROM documentos_biblioteca WHERE id = ?");
@@ -109,8 +148,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['subir_documento']) |
                 }
             } else {
                 // INSERT
-                $stmt = $pdo->prepare("INSERT INTO documentos_biblioteca (id_autor, tipo, titulo, resumen, imagen_portada, archivo_documento, estado_publicacion) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                if ($stmt->execute([$userId, $tipo, $titulo, $resumen, $rutaPortada, $rutaArchivo, $estado_post])) {
+                $sql = "INSERT INTO documentos_biblioteca 
+                        (id_autor, tipo, titulo, resumen, palabras_clave, imagen_portada, archivo_documento, estado_publicacion,
+                         institucion, grado, asesor, revista, issn, doi, tipo_material, categoria_acervo, derechos) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                $stmt = $pdo->prepare($sql);
+                if ($stmt->execute([
+                    $userId, $tipo, $titulo, $resumen, $palabras_clave, $rutaPortada, $rutaArchivo, $estado_post,
+                    $institucion, $grado, $asesor, $revista, $issn, $doi, $tipo_material, $categoria_acervo, $derechos
+                ])) {
                     $success = "Documento guardado correctamente (" . ($estado_post == 'borrador' ? 'Borrador' : 'Pendiente de revisión') . ").";
                 } else {
                     $error = "Error al guardar en la base de datos.";
@@ -135,7 +181,32 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
+        .toast-notification {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-left: 4px solid #ef4444;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            display: flex;
+            items-center: center;
+            gap: 12px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
+    <!-- PDF.js para el visor protegido -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
 </head>
 <body class="bg-slate-50 flex h-screen overflow-hidden">
 
@@ -201,6 +272,36 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
 
         <main class="flex-1 overflow-y-auto p-8">
             <div class="max-w-6xl mx-auto">
+                
+                <!-- Sub-Cabecera de Navegación -->
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center">
+                        <?php 
+                            $backUrl = 'subir_articulo.php?modulo=inicio';
+                            if ($id_edit) $backUrl = 'subir_articulo.php?modulo=mis_documentos';
+                            else if ($modulo === 'nuevo') $backUrl = 'subir_articulo.php?modulo=inicio';
+                            else if ($modulo === 'mis_documentos') $backUrl = 'subir_articulo.php?modulo=inicio';
+                        ?>
+                        <a href="<?= $backUrl ?>" class="mr-4 text-gray-400 hover:text-emerald-600 transition-colors p-2 bg-white rounded-xl shadow-sm border border-slate-100">
+                            <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                        </a>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900">
+                                <?php 
+                                    if ($id_edit) echo "Modificar Documento";
+                                    else if ($modulo === 'nuevo') echo "Nuevo Registro";
+                                    else echo "Mis Publicaciones";
+                                ?>
+                            </h2>
+                            <p class="text-slate-500 text-sm mt-1">
+                                <?php 
+                                    if ($id_edit) echo htmlspecialchars($doc_edit['titulo']) . ' <span class="text-xs text-slate-300 ml-2">ID: #' . $doc_edit['id'] . '</span>';
+                                    else echo "Portal del Investigador CIATA";
+                                ?>
+                            </p>
+                        </div>
+                    </div>
+                </div>
                 
                 <?php if ($error): ?>
                 <div class="bg-red-50 border border-red-100 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-3">
@@ -270,13 +371,81 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
                                     <label class="text-sm font-bold text-slate-700">Resumen</label>
                                     <textarea name="resumen" rows="4" required class="w-full border border-slate-200 rounded-xl px-4 py-3 outline-none"><?= htmlspecialchars($doc_edit['resumen'] ?? '') ?></textarea>
                                 </div>
+
+                                <div class="space-y-2">
+                                    <label class="text-sm font-bold text-slate-700">Palabras Clave (Separadas por comas)</label>
+                                    <input type="text" name="palabras_clave" placeholder="ej. educación, tecnología, sinaloa" 
+                                        value="<?= htmlspecialchars($doc_edit['palabras_clave'] ?? '') ?>"
+                                        class="w-full border border-slate-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                </div>
+
+                                <!-- CAMPOS DINÁMICOS POR TIPO -->
+                                <!-- Tesis -->
+                                <div id="fields-tesis" class="dynamic-fields grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-50 <?= ($doc_edit['tipo'] ?? '') === 'tesis' ? '' : 'hidden' ?>">
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-bold text-slate-700">Institución</label>
+                                        <input type="text" name="institucion" value="<?= htmlspecialchars($doc_edit['institucion'] ?? '') ?>"
+                                            class="w-full border border-slate-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500/20">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-bold text-slate-700">Grado Académico</label>
+                                        <input type="text" name="grado" value="<?= htmlspecialchars($doc_edit['grado'] ?? '') ?>"
+                                            class="w-full border border-slate-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500/20">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-bold text-slate-700">Asesor</label>
+                                        <input type="text" name="asesor" value="<?= htmlspecialchars($doc_edit['asesor'] ?? '') ?>"
+                                            class="w-full border border-slate-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500/20">
+                                    </div>
+                                </div>
+
+                                <!-- Artículo -->
+                                <div id="fields-articulo" class="dynamic-fields grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-50 <?= ($doc_edit['tipo'] ?? 'articulo') === 'articulo' ? '' : 'hidden' ?>">
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-bold text-slate-700">Revista</label>
+                                        <input type="text" name="revista" value="<?= htmlspecialchars($doc_edit['revista'] ?? '') ?>"
+                                            class="w-full border border-slate-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-bold text-slate-700">ISSN</label>
+                                        <input type="text" name="issn" value="<?= htmlspecialchars($doc_edit['issn'] ?? '') ?>"
+                                            class="w-full border border-slate-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-bold text-slate-700">DOI</label>
+                                        <input type="text" name="doi" value="<?= htmlspecialchars($doc_edit['doi'] ?? '') ?>"
+                                            class="w-full border border-slate-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-emerald-500/20">
+                                    </div>
+                                </div>
+
+                                <!-- Acervo -->
+                                <div id="fields-acervo" class="dynamic-fields grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-50 <?= ($doc_edit['tipo'] ?? '') === 'acervo' ? '' : 'hidden' ?>">
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-bold text-slate-700">Tipo de Material</label>
+                                        <input type="text" name="tipo_material" value="<?= htmlspecialchars($doc_edit['tipo_material'] ?? '') ?>"
+                                            class="w-full border border-slate-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-amber-500/20">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-bold text-slate-700">Categoría</label>
+                                        <input type="text" name="categoria_acervo" value="<?= htmlspecialchars($doc_edit['categoria_acervo'] ?? '') ?>"
+                                            class="w-full border border-slate-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-amber-500/20">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-bold text-slate-700">Derechos/Licencia</label>
+                                        <input type="text" name="derechos" value="<?= htmlspecialchars($doc_edit['derechos'] ?? '') ?>"
+                                            class="w-full border border-slate-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-amber-500/20">
+                                    </div>
+                                </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="space-y-3">
-                                        <label class="text-sm font-bold text-slate-700">Documento (PDF) <?= $id_edit ? '<span class="text-[10px] text-slate-400">(Dejar vacío para mantener actual)</span>' : '' ?></label>
+                                        <label class="text-sm font-bold text-slate-700 flex justify-between items-center">
+                                            Documento (PDF) <?= $id_edit ? '<span class="text-[10px] text-slate-400 font-normal">(Dejar vacío para mantener actual)</span>' : '' ?>
+                                            <span class="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded uppercase font-bold tracking-tighter">Solo PDF</span>
+                                        </label>
                                         <div class="relative group">
                                             <input type="file" name="archivo" id="file-pdf" accept=".pdf" <?= $id_edit ? '' : 'required' ?> 
                                                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                                onchange="updateFileName('file-pdf', 'name-pdf')">
+                                                onchange="updateFileName('file-pdf', 'name-pdf', false, '.pdf')">
                                             <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center transition-all group-hover:border-emerald-400 group-hover:bg-emerald-50/30">
                                                 <div class="w-12 h-12 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-3 group-hover:bg-emerald-100 group-hover:text-emerald-600 transition-colors">
                                                     <i data-lucide="file-text" class="w-6 h-6"></i>
@@ -287,11 +456,14 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
                                         </div>
                                     </div>
                                     <div class="space-y-3">
-                                        <label class="text-sm font-bold text-slate-700">Imagen Portada</label>
+                                        <label class="text-sm font-bold text-slate-700 flex justify-between items-center">
+                                            Imagen Portada
+                                            <span class="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded uppercase font-bold tracking-tighter">JPG, PNG, WEBP</span>
+                                        </label>
                                         <div class="relative group">
-                                            <input type="file" name="portada" id="file-img" accept="image/*" 
+                                            <input type="file" name="portada" id="file-img" accept=".jpg,.jpeg,.png,.webp" 
                                                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                                onchange="updateFileName('file-img', 'name-img', true)">
+                                                onchange="updateFileName('file-img', 'name-img', true, '.jpg,.jpeg,.png,.webp')">
                                             <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center transition-all group-hover:border-blue-400 group-hover:bg-blue-50/30">
                                                 <div id="preview-container" class="w-12 h-12 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-3 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors overflow-hidden">
                                                     <i data-lucide="image" class="w-6 h-6"></i>
@@ -360,13 +532,14 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                         <table class="w-full text-left">
                             <thead class="bg-slate-50 text-slate-500 text-[11px] font-bold uppercase">
-                                <tr><th class="px-6 py-4">Documento</th><th class="px-6 py-4">Estado</th><th class="px-6 py-4">Fecha</th><th class="px-6 py-4 text-right">Acciones</th></tr>
+                                <tr><th class="px-6 py-4">Documento</th><th class="px-6 py-4">Estado</th><th class="px-6 py-4">Fecha</th><th class="px-6 py-4 text-center">Acciones</th></tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 <?php
                                 $misDocs = $pdo->query("SELECT * FROM documentos_biblioteca WHERE id_autor = $userId ORDER BY fecha_subida DESC")->fetchAll();
                                 foreach($misDocs as $doc):
-                                    $puedeEditar = ($doc['estado_publicacion'] !== 'publicado' || $userRol === 'admin');
+                                    // El autor solo edita si es borrador o rechazado (para corregir)
+                                    $puedeEditar = (!in_array($doc['estado_publicacion'], ['publicado', 'pendiente']) || $userRol === 'admin');
                                 ?>
                                 <tr class="hover:bg-slate-50">
                                     <td class="px-6 py-4">
@@ -381,20 +554,32 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
                                         <span class="px-2.5 py-1 rounded-full text-[9px] font-bold uppercase 
                                             <?= $doc['estado_publicacion'] === 'publicado' ? 'bg-emerald-100 text-emerald-700' : 
                                                ($doc['estado_publicacion'] === 'borrador' ? 'bg-slate-100 text-slate-600' : 
-                                               ($doc['estado_publicacion'] === 'rechazado' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700')) ?>">
+                                               ($doc['estado_publicacion'] === 'suspendido' ? 'bg-amber-100 text-amber-700' :
+                                               ($doc['estado_publicacion'] === 'rechazado' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'))) ?>">
                                             <?= $doc['estado_publicacion'] ?>
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 text-xs text-slate-500"><?= date('d/m/Y', strtotime($doc['fecha_subida'])) ?></td>
-                                    <td class="px-6 py-4 text-right">
-                                        <?php if ($puedeEditar): ?>
-                                        <a href="subir_articulo.php?edit=<?= $doc['id'] ?>" class="text-blue-600 hover:text-blue-800 transition-colors mr-3" title="Editar">
-                                            <i data-lucide="edit-3" class="w-5 h-5"></i>
-                                        </a>
-                                        <?php else: ?>
-                                        <span class="text-slate-300 cursor-not-allowed mr-3" title="Publicado - Solo lectura"><i data-lucide="lock" class="w-5 h-5"></i></span>
-                                        <?php endif; ?>
-                                        <button class="text-slate-400 hover:text-red-500"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center justify-center gap-2">
+                                            <button onclick="openDocumentViewer('<?= $doc['archivo_documento'] ?>', '<?= addslashes($doc['titulo']) ?>')" 
+                                                class="p-2 bg-slate-50 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" 
+                                                title="Ver PDF">
+                                                <i data-lucide="eye" class="w-4 h-4"></i>
+                                            </button>
+                                            <?php if ($puedeEditar): ?>
+                                            <a href="subir_articulo.php?edit=<?= $doc['id'] ?>" class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all" title="Editar">
+                                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                            </a>
+                                            <?php else: ?>
+                                            <span class="p-2 text-slate-300 cursor-not-allowed" title="<?= ($doc['estado_publicacion'] === 'publicado') ? 'Publicado' : 'En Revisión (Pendiente)' ?> - Solo lectura">
+                                                <i data-lucide="lock" class="w-4 h-4"></i>
+                                            </span>
+                                            <?php endif; ?>
+                                            <button class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -405,8 +590,116 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
             </div>
         </main>
     </div>
+    <!-- ============================================== -->
+    <!-- SECURE DOCUMENT VIEWER MODAL (PDF.js)        -->
+    <!-- ============================================== -->
+    <div id="documentViewerModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 md:p-6 lg:p-10">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onclick="closeDocumentViewer()"></div>
+        
+        <!-- Modal Content -->
+        <div class="bg-white w-full max-w-6xl h-full rounded-2xl shadow-2xl overflow-hidden relative flex flex-col animate-in fade-in zoom-in duration-300">
+            
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 id="viewerTitle" class="font-bold text-slate-900 text-sm md:text-base line-clamp-1">Documento</h3>
+                        <p class="text-[10px] text-slate-400 uppercase font-bold tracking-widest flex items-center gap-1">
+                            <i data-lucide="shield-check" class="w-3 h-3 text-emerald-500"></i> Vista Protegida de Investigador
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <a id="downloadPDFBtn" href="#" download class="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-full transition-all group" title="Descargar Mi PDF Original">
+                        <i data-lucide="download" class="w-6 h-6"></i>
+                    </a>
+                    <button onclick="closeDocumentViewer()" class="p-2 hover:bg-slate-100 rounded-full transition-colors group">
+                        <i data-lucide="x" class="w-6 h-6 text-slate-400 group-hover:text-slate-600"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Viewer Body -->
+            <div class="flex-grow bg-slate-100 relative overflow-y-auto custom-scrollbar" id="modal-scroll-container">
+                <div id="pdf-render-container" class="flex flex-col items-center p-6 md:p-10" oncontextmenu="return false;">
+                    <!-- PDF pages will spend here -->
+                    <div id="pdf-loader" class="flex flex-col items-center justify-center py-32 text-emerald-900">
+                        <div class="animate-spin rounded-full h-14 w-14 border-b-2 border-emerald-600 mb-6"></div>
+                        <p class="text-sm font-bold uppercase tracking-widest text-slate-500">Procesando Documento...</p>
+                        <p class="text-xs text-slate-400 mt-2">Preparando entorno de lectura segura</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         lucide.createIcons();
+
+        // VISOR DE DOCUMENTOS PROTEGIDO (PDF.js)
+        async function openDocumentViewer(url, title = "Documento") {
+            const modal = document.getElementById('documentViewerModal');
+            const container = document.getElementById('pdf-render-container');
+            const loader = document.getElementById('pdf-loader');
+            const scrollContainer = document.getElementById('modal-scroll-container');
+            const viewerTitle = document.getElementById('viewerTitle');
+            
+            if (viewerTitle) viewerTitle.textContent = title;
+            const downloadBtn = document.getElementById('downloadPDFBtn');
+            if (downloadBtn) {
+                downloadBtn.href = url;
+                const fileName = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + ".pdf";
+                downloadBtn.setAttribute('download', fileName);
+            }
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden'; 
+            scrollContainer.scrollTop = 0;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            Array.from(container.children).forEach(child => {
+                if(child.id !== 'pdf-loader') child.remove();
+            });
+            loader.style.display = 'flex';
+
+            try {
+                const loadingTask = pdfjsLib.getDocument(url);
+                const pdf = await loadingTask.promise;
+                loader.style.display = 'none';
+
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    container.appendChild(canvas);
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+                }
+            } catch (error) {
+                console.error('Error al cargar PDF:', error);
+                loader.innerHTML = `<div class="bg-red-50 p-6 rounded-2xl border border-red-100 flex flex-col items-center">
+                    <i data-lucide="alert-triangle" class="w-12 h-12 text-red-500 mb-4"></i>
+                    <p class="text-sm font-bold text-red-600 uppercase tracking-wider">Error de acceso</p>
+                    <p class="text-xs text-red-400 mt-1">No se pudo cargar el archivo original</p>
+                </div>`;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }
+
+        function closeDocumentViewer() {
+            const modal = document.getElementById('documentViewerModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = ''; 
+        }
 
         // Custom Select Logic
         document.querySelectorAll('.custom-select').forEach(select => {
@@ -450,11 +743,12 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
                     options.classList.add('hidden');
                     options.classList.remove('scale-100', 'opacity-100');
                     icon.style.transform = 'rotate(0deg)';
-                    
-                    // Update preview if it's the category select
-                    if (select.id === 'select-tipo') {
-                        document.getElementById('prev-cat').textContent = text;
-                    }
+
+                        // Trigger dynamic fields logic if it's the 'tipo' select
+                        if (select.id === 'select-tipo') {
+                            document.getElementById('prev-cat').textContent = text;
+                            toggleDynamicFields(val);
+                        }
                 });
             });
         });
@@ -466,6 +760,15 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
             });
             document.querySelectorAll('.select-trigger i').forEach(i => i.style.transform = 'rotate(0deg)');
         });
+
+        function toggleDynamicFields(type) {
+            document.querySelectorAll('.dynamic-fields').forEach(div => div.classList.add('hidden'));
+            const target = document.getElementById('fields-' + type);
+            if (target) {
+                target.classList.remove('hidden');
+                target.classList.add('animate-in', 'fade-in', 'slide-in-from-top-2', 'duration-300');
+            }
+        }
 
         function updatePreview() {
             const titleIn = document.getElementById('in-titulo').value;
@@ -480,11 +783,51 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
             }
         }
 
-        function updateFileName(inputId, nameId, isImg = false) {
+        function showToast(message, type = 'error') {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification border-red-500';
+            if (type === 'success') toast.classList.replace('border-red-500', 'border-emerald-500');
+            
+            toast.innerHTML = `
+                <i data-lucide="${type === 'error' ? 'alert-circle' : 'check-circle'}" class="w-5 h-5 ${type === 'error' ? 'text-red-500' : 'text-emerald-500'}"></i>
+                <span class="text-sm font-bold text-slate-700">${message}</span>
+            `;
+            document.body.appendChild(toast);
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function updateFileName(inputId, nameId, isImg = false, allowedExtensions = '') {
             const input = document.getElementById(inputId);
             const label = document.getElementById(nameId);
+            
             if (input.files && input.files[0]) {
-                label.textContent = input.files[0].name;
+                const file = input.files[0];
+                const fileName = file.name;
+                const fileExt = '.' + fileName.split('.').pop().toLowerCase();
+                
+                // Validación de extensión
+                if (allowedExtensions && !allowedExtensions.split(',').includes(fileExt)) {
+                    showToast(`Formato no compatible. Usa: ${allowedExtensions}`, 'error');
+                    input.value = ''; // Limpiar selección
+                    label.textContent = "Ningún archivo seleccionado";
+                    label.classList.add('text-slate-400');
+                    label.classList.remove('text-emerald-600', 'font-bold');
+                    
+                    if (isImg) {
+                        document.getElementById('preview-container').innerHTML = '<i data-lucide="image" class="w-6 h-6"></i>';
+                        lucide.createIcons();
+                    }
+                    return;
+                }
+
+                label.textContent = fileName;
                 label.classList.remove('text-slate-400');
                 label.classList.add('text-emerald-600', 'font-bold');
 

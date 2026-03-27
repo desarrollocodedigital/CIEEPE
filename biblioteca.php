@@ -10,6 +10,61 @@ $userNameBib = $isLoggedBib ? $_SESSION['user_bib_nombre'] : '';
 $stmt = $pdo->prepare("SELECT d.*, u.nombre as autor_nombre FROM documentos_biblioteca d JOIN usuarios_biblioteca u ON d.id_autor = u.id WHERE d.estado_publicacion = 'publicado' ORDER BY d.fecha_subida DESC");
 $stmt->execute();
 $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Obtener favoritos y vistos del usuario si está logueado
+$userFavs = [];
+$userVistos = [];
+if ($isLoggedBib) {
+    $stmtFav = $pdo->prepare("SELECT id_documento FROM favoritos_biblioteca WHERE id_usuario = ?");
+    $stmtFav->execute([$_SESSION['user_bib_id']]);
+    $userFavs = $stmtFav->fetchAll(PDO::FETCH_COLUMN);
+
+    // Obtener historial de vistos (ordenado por fecha_visto DESC)
+    $stmtVistos = $pdo->prepare("SELECT id_documento FROM vistos_biblioteca WHERE id_usuario = ? ORDER BY fecha_visto DESC");
+    $stmtVistos->execute([$_SESSION['user_bib_id']]);
+    $userVistos = $stmtVistos->fetchAll(PDO::FETCH_COLUMN);
+}
+
+// Configuración de sitio
+$showCiataBtn = true;
+$site_logo = 'img/logo.png'; // Valor por defecto
+try {
+    $stConfig = $pdo->query("SELECT clave, valor FROM site_config WHERE clave IN ('show_ciata_button', 'site_logo')");
+    while ($row = $stConfig->fetch()) {
+        if ($row['clave'] === 'show_ciata_button' && $row['valor'] === '0') $showCiataBtn = false;
+        if ($row['clave'] === 'site_logo' && !empty($row['valor'])) $site_logo = $row['valor'];
+    }
+} catch (Exception $e) {}
+
+// 5. Sugerencias Dinámicas basadas en Popularidad (Palabras Clave)
+$stmtSugerencias = $pdo->query("SELECT d.palabras_clave 
+                               FROM vistos_biblioteca v 
+                               JOIN documentos_biblioteca d ON v.id_documento = d.id 
+                               WHERE d.estado_publicacion = 'publicado'
+                               ORDER BY v.fecha_visto DESC LIMIT 50"); // Tomamos las últimas 50 vistas para tendencia
+$allKeywordsRaw = $stmtSugerencias->fetchAll(PDO::FETCH_COLUMN);
+
+$keywordCounts = [];
+foreach($allKeywordsRaw as $kwString) {
+    if (!$kwString) continue;
+    $tags = explode(',', $kwString);
+    foreach($tags as $tag) {
+        $tag = trim($tag);
+        if ($tag && strlen($tag) > 2) {
+            $tagLower = mb_strtolower($tag, 'UTF-8');
+            $keywordCounts[$tagLower] = ($keywordCounts[$tagLower] ?? 0) + 1;
+        }
+    }
+}
+arsort($keywordCounts);
+$sugerenciasPopulares = array_slice(array_keys($keywordCounts), 0, 8);
+
+// Fallback si no hay suficientes vistas aún
+if (count($sugerenciasPopulares) < 4) {
+    $defaultKws = ['Inclusión', 'Neuroeducación', 'Pedagogía', 'Políticas Públicas', 'Formación Docente', 'Tesis', 'Educación Especial'];
+    $sugerenciasPopulares = array_unique(array_merge($sugerenciasPopulares, $defaultKws));
+    $sugerenciasPopulares = array_slice($sugerenciasPopulares, 0, 8);
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -344,18 +399,25 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <!-- Trending Tags -->
                 <div class="mt-6 flex flex-wrap justify-center gap-2">
                     <span class="text-xs font-semibold text-slate-400 uppercase mr-2 pt-1">Sugerencias:</span>
+                    <?php foreach($sugerenciasPopulares as $kw): ?>
                     <button
-                        class="search-tag text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full hover:bg-slate-200 transition-colors">Inclusión
-                        Educativa</button>
-                    <button
-                        class="search-tag text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full hover:bg-slate-200 transition-colors">Neuroeducación</button>
-                    <button
-                        class="search-tag text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full hover:bg-slate-200 transition-colors">Políticas
-                        Públicas</button>
-                    <button
-                        class="search-tag text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full hover:bg-slate-200 transition-colors">Formación
-                        Docente</button>
+                        class="search-tag text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-full hover:bg-slate-200 transition-colors capitalize"><?= htmlspecialchars($kw) ?></button>
+                    <?php endforeach; ?>
                 </div>
+            </div>
+        </section>
+
+        <!-- Recent Documents Section -->
+        <section class="max-w-7xl mx-auto px-4 pt-12">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h3 class="serif text-3xl text-slate-900 italic">Últimos agregados</h3>
+                    <div class="h-1 w-20 bg-blue-900 mt-2 rounded"></div>
+                </div>
+                <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Novedades del Portal</span>
+            </div>
+            <div id="recentGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <!-- Recent books will be injected here -->
             </div>
         </section>
 
@@ -374,7 +436,19 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         data-category="articulo">Artículos</button>
                     <button
                         class="filter-tag px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium bg-white text-slate-600 hover:border-slate-300 transition-all"
-                        data-category="libro">Libros</button>
+                        data-category="acervo">Acervos</button>
+                    <?php if ($isLoggedBib): ?>
+                    <button
+                        class="filter-tag px-4 py-2 rounded-lg border border-yellow-100 text-sm font-medium bg-yellow-50/30 text-yellow-600 hover:bg-yellow-50 transition-all flex items-center gap-2"
+                        data-category="favorites">
+                        <i data-lucide="star" class="w-4 h-4 fill-yellow-500 text-yellow-500"></i> Mis Favoritos
+                    </button>
+                    <button
+                        class="filter-tag px-4 py-2 rounded-lg border border-indigo-100 text-sm font-medium bg-indigo-50/30 text-indigo-600 hover:bg-indigo-50 transition-all flex items-center gap-2"
+                        data-category="recent_views">
+                        <i data-lucide="history" class="w-4 h-4"></i> Últimos Vistos
+                    </button>
+                    <?php endif; ?>
                 </div>
                 <div class="text-sm text-slate-500 font-medium">
                     Mostrando <span id="itemCount" class="text-slate-900">0</span> resultados
@@ -483,7 +557,16 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <div class="mb-8">
                     <h4 class="font-bold text-slate-900 mb-2">Resumen Académico</h4>
-                    <p id="modalDesc" class="text-slate-600 text-sm leading-relaxed"></p>
+                    <p id="modalDesc" class="text-slate-600 text-sm leading-relaxed mb-4"></p>
+                    <div id="modalKeywords" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- INFO EXTRA DINÁMICA -->
+                <div id="modalExtraInfo" class="mb-8 p-4 bg-slate-50 rounded-2xl border border-slate-100 hidden">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <i data-lucide="info" class="w-4 h-4"></i> Información Técnica
+                    </h4>
+                    <div id="extraInfoContent" class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6"></div>
                 </div>
 
                 <div class="flex flex-col gap-6">
@@ -493,9 +576,9 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             class="flex-1 bg-blue-900 text-white py-3 rounded-xl font-bold hover:bg-blue-800 transition-all flex items-center justify-center gap-2">
                             <i data-lucide="book-open" class="w-4 h-4"></i> Leer Documento
                         </button>
-                        <button class="bg-slate-100 text-slate-700 p-3 rounded-xl hover:bg-slate-200 transition-all"
+                        <button id="favBtn" class="bg-slate-100 text-slate-700 p-3 rounded-xl hover:bg-slate-200 transition-all"
                             title="Guardar a favoritos">
-                            <i data-lucide="bookmark" class="w-5 h-5"></i>
+                            <i id="favIcon" data-lucide="bookmark" class="w-5 h-5"></i>
                         </button>
                         <button class="bg-slate-100 text-slate-700 p-3 rounded-xl hover:bg-slate-200 transition-all"
                             title="Citar (APA)">
@@ -529,6 +612,7 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
+    <?php if ($isLoggedBib && $showCiataBtn): ?>
     <!-- ============================================== -->
     <!-- FLOATING CIATA BUTTON -->
     <!-- ============================================== -->
@@ -548,7 +632,9 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
             Pregúntale al CIATA
         </div>
     </div>
+    <?php endif; ?>
 
+    <?php if ($isLoggedBib && $showCiataBtn): ?>
     <!-- ============================================== -->
     <!-- CIATA FULL-SCREEN MODAL OVERLAY -->
     <!-- ============================================== -->
@@ -666,11 +752,11 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
         }
     </style>
+    <?php endif; ?>
 
     <script>
-        // ============================
-        // LIBRARY DATA (Real researchers)
-        // ============================
+        const userFavs = <?php echo json_encode($userFavs); ?>;
+        const userVistos = <?php echo json_encode($userVistos); ?>;
         const books = <?php echo json_encode($documentosDB); ?>.map(doc => {
             // Asignar un color aleatorio si no tiene uno definido (para el diseño de portadas genéricas)
             const colors = ["#1e3a8a", "#6b21a8", "#15803d", "#c2410c", "#0e7490", "#be123c"];
@@ -685,9 +771,37 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 color: randomColor,
                 desc: doc.resumen,
                 cover: doc.imagen_portada,
-                file: doc.archivo_documento
+                file: doc.archivo_documento,
+                institucion: doc.institucion,
+                grado: doc.grado,
+                asesor: doc.asesor,
+                revista: doc.revista,
+                issn: doc.issn,
+                doi: doc.doi,
+                tipo_material: doc.tipo_material,
+                categoria_acervo: doc.categoria_acervo,
+                derechos: doc.derechos,
+                keywords: doc.palabras_clave,
+                isFavorite: userFavs.includes(doc.id.toString()) || userFavs.includes(parseInt(doc.id)),
+                lastViewedOrder: userVistos.indexOf(doc.id.toString()) !== -1 ? 
+                                userVistos.indexOf(doc.id.toString()) : 
+                                (userVistos.indexOf(parseInt(doc.id)) !== -1 ? 
+                                 userVistos.indexOf(parseInt(doc.id)) : 999999)
             };
         });
+
+        // Mapeo de categorías para visualización amigable
+        const categoryLabels = {
+            'articulo': 'Artículos',
+            'tesis': 'Tesis',
+            'acervo': 'Acervos'
+        };
+
+        const categorySingular = {
+            'articulo': 'Artículo',
+            'tesis': 'Tesis',
+            'acervo': 'Acervo'
+        };
 
         let currentCategory = 'all';
         let searchQuery = '';
@@ -700,11 +814,20 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         function renderBooks() {
             const filtered = books.filter(book => {
-                const matchCat = currentCategory === 'all' || book.category === currentCategory;
+                const matchCat = currentCategory === 'all' || 
+                               (currentCategory === 'favorites' ? book.isFavorite : 
+                               (currentCategory === 'recent_views' ? book.lastViewedOrder < 999999 : 
+                               book.category === currentCategory));
                 const matchSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    book.author.toLowerCase().includes(searchQuery.toLowerCase());
+                    book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (book.keywords && book.keywords.toLowerCase().includes(searchQuery.toLowerCase()));
                 return matchCat && matchSearch;
             });
+
+            // Re-ordenar si es últimos vistos (por lastViewedOrder ASC)
+            if (currentCategory === 'recent_views') {
+                filtered.sort((a, b) => a.lastViewedOrder - b.lastViewedOrder);
+            }
 
             booksGrid.innerHTML = '';
             itemCount.textContent = filtered.length;
@@ -732,7 +855,7 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                         <div class="p-4 flex-grow flex flex-col">
                             <div class="flex justify-between items-start mb-2">
-                                <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400">${book.category}</span>
+                                <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400">${categorySingular[book.category] || book.category}</span>
                                 <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">${book.year}</span>
                             </div>
                             <h3 class="font-bold text-slate-900 text-sm leading-tight mb-2 line-clamp-2">${book.title}</h3>
@@ -741,8 +864,39 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     `;
                     booksGrid.appendChild(card);
                 });
-                lucide.createIcons();
             }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function renderRecent() {
+            const recentGrid = document.getElementById('recentGrid');
+            if (!recentGrid) return;
+            
+            const recent = books.slice(0, 6);
+            recentGrid.innerHTML = '';
+            
+            recent.forEach(book => {
+                const card = document.createElement('div');
+                card.className = 'book-card bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100 flex flex-col cursor-pointer hover:shadow-md transition-all scale-95 hover:scale-100';
+                card.onclick = () => openBookModal(book);
+
+                card.innerHTML = `
+                    <div class="h-32 relative overflow-hidden flex items-center justify-center p-4 border-b border-slate-50" style="background-color: ${book.color}10">
+                        ${book.cover ? 
+                            `<img src="${book.cover}" class="w-16 h-20 object-cover rounded shadow-md border border-white/50">` : 
+                            `<div class="w-16 h-20 bg-white rounded shadow-md border-l-4 border-slate-900 flex flex-col justify-end p-1.5 relative" style="border-left-color: ${book.color}">
+                                <div class="w-full h-0.5 bg-slate-100 mb-0.5 rounded"></div>
+                                <div class="w-2/3 h-0.5 bg-slate-100 rounded"></div>
+                            </div>`
+                        }
+                    </div>
+                    <div class="p-3 flex-grow flex flex-col">
+                        <span class="text-[8px] font-bold uppercase tracking-wider text-slate-400 mb-1">${categorySingular[book.category] || book.category}</span>
+                        <h4 class="font-bold text-slate-900 text-[10px] leading-tight line-clamp-2">${book.title}</h4>
+                    </div>
+                `;
+                recentGrid.appendChild(card);
+            });
         }
 
         // Search
@@ -777,7 +931,7 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
             document.getElementById('modalAuthor').textContent = book.author;
             document.getElementById('modalYear').textContent = book.year;
             document.getElementById('modalDesc').textContent = book.desc;
-            document.getElementById('modalCategory').textContent = book.category;
+            document.getElementById('modalCategory').textContent = categorySingular[book.category] || book.category;
             const cover = document.getElementById('modalCover');
             if (book.cover) {
                 cover.innerHTML = `<img src="${book.cover}" class="w-full h-full object-cover rounded-lg">`;
@@ -786,17 +940,88 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
             } else {
                 cover.innerHTML = `
                     <i data-lucide="book" class="w-12 h-12 mb-4 opacity-30"></i>
-                    <p id="modalCoverTitle" class="text-xs font-bold uppercase">${book.category}</p>
+                    <p id="modalCoverTitle" class="text-xs font-bold uppercase">${categorySingular[book.category] || book.category}</p>
                 `;
                 cover.style.backgroundColor = book.color + '20';
                 cover.style.color = book.color;
                 cover.style.borderColor = book.color;
             }
-            // Actualizar link de lectura
             const readBtn = document.getElementById('readBtn');
             if (readBtn) {
-                readBtn.onclick = () => openDocumentViewer(book.file, book.title);
+                readBtn.onclick = () => {
+                    registerView(book.id);
+                    openDocumentViewer(book.file, book.title);
+                };
             }
+
+            const favBtn = document.getElementById('favBtn');
+            if (favBtn) {
+                favBtn.onclick = () => toggleFavorite(book);
+                updateFavBtnUI(book.isFavorite);
+            }
+
+            // Información Extra Dinámica
+            const extraContainer = document.getElementById('modalExtraInfo');
+            const extraContent = document.getElementById('extraInfoContent');
+            extraContent.innerHTML = '';
+            let hasExtra = false;
+
+            const addExtraItem = (icon, label, value) => {
+                if (!value || value.trim() === '') return;
+                hasExtra = true;
+                const div = document.createElement('div');
+                div.className = 'flex flex-col';
+                div.innerHTML = `
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="${icon}" class="w-3.5 h-3.5 text-blue-600"></i>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tight">${label}</span>
+                    </div>
+                    <p class="text-sm font-semibold text-slate-700 leading-tight">${value}</p>
+                `;
+                extraContent.appendChild(div);
+            };
+
+            if (book.category === 'tesis') {
+                addExtraItem('building', 'Institución', book.institucion);
+                addExtraItem('graduation-cap', 'Grado', book.grado);
+                addExtraItem('user-check', 'Asesor', book.asesor);
+            } else if (book.category === 'articulo') {
+                addExtraItem('library', 'Revista', book.revista);
+                addExtraItem('hash', 'ISSN', book.issn);
+                if (book.doi) {
+                    const doiVal = book.doi.startsWith('http') ? book.doi : `https://doi.org/${book.doi}`;
+                    addExtraItem('link', 'DOI', `<a href="${doiVal}" target="_blank" class="text-blue-600 hover:underline inline-flex items-center gap-1">${book.doi} <i data-lucide="external-link" class="w-3 h-3"></i></a>`);
+                }
+            } else if (book.category === 'acervo') {
+                addExtraItem('box', 'Tipo Material', book.tipo_material);
+                addExtraItem('folder', 'Categoría', book.categoria_acervo);
+                addExtraItem('shield-alert', 'Derechos', book.derechos);
+            }
+
+            if (hasExtra) {
+                extraContainer.classList.remove('hidden');
+            } else {
+                extraContainer.classList.add('hidden');
+            }
+
+            // Palabras Clave
+            const kwContainer = document.getElementById('modalKeywords');
+            kwContainer.innerHTML = '';
+            if (book.keywords) {
+                book.keywords.split(',').forEach(kw => {
+                    const tag = document.createElement('span');
+                    tag.className = 'px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors';
+                    tag.textContent = kw.trim();
+                    tag.onclick = () => {
+                        closeBookModal();
+                        document.getElementById('searchInput').value = kw.trim();
+                        searchQuery = kw.trim();
+                        renderBooks();
+                    };
+                    kwContainer.appendChild(tag);
+                });
+            }
+
             bookModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
             lucide.createIcons();
@@ -806,6 +1031,82 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
             document.body.style.overflow = 'auto';
         }
 
+        async function registerView(bookId) {
+            if (!<?php echo $isLoggedBib ? 'true' : 'false'; ?>) return;
+
+            // Actualización local para reflejar el cambio en tiempo real (Optimista)
+            const bookIdx = books.findIndex(b => b.id == bookId);
+            if (bookIdx !== -1) {
+                const prevOrder = books[bookIdx].lastViewedOrder;
+                // Incrementar el orden de los que eran más recientes que este o estaban en el historial
+                books.forEach(b => {
+                    if (b.lastViewedOrder < prevOrder) {
+                        b.lastViewedOrder++;
+                    }
+                });
+                // Poner este como el más reciente
+                books[bookIdx].lastViewedOrder = 0;
+
+                // Si estamos en el filtro de 'Últimos Vistos', refrescar la vista
+                if (currentCategory === 'recent_views') renderBooks();
+            }
+
+            try {
+                fetch('api/registrar_visto.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ doc_id: bookId })
+                });
+            } catch (error) {
+                console.warn("Error registrar visto:", error);
+            }
+        }
+
+        async function toggleFavorite(book) {
+            if (!<?php echo $isLoggedBib ? 'true' : 'false'; ?>) {
+                alert("Debes iniciar sesión para guardar favoritos.");
+                return;
+            }
+
+            try {
+                const response = await fetch('api/toggle_favorito.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ doc_id: book.id })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    book.isFavorite = (data.action === 'added');
+                    updateFavBtnUI(book.isFavorite);
+                    if (currentCategory === 'favorites') renderBooks();
+                } else {
+                    alert(data.error || "Error al actualizar favoritos");
+                }
+            } catch (error) {
+                console.error("Error toggle favorite:", error);
+            }
+        }
+
+        function updateFavBtnUI(isFav) {
+            const btn = document.getElementById('favBtn');
+            if (!btn) return;
+
+            if (isFav) {
+                btn.classList.add('bg-yellow-50', 'text-yellow-600', 'border-yellow-200');
+                btn.classList.remove('bg-slate-100', 'text-slate-700');
+                btn.innerHTML = `<i data-lucide="star" class="w-5 h-5 fill-yellow-500"></i>`;
+                btn.title = "Quitar de favoritos";
+            } else {
+                btn.classList.remove('bg-yellow-50', 'text-yellow-600', 'border-yellow-200');
+                btn.classList.add('bg-slate-100', 'text-slate-700');
+                btn.innerHTML = `<i data-lucide="star" class="w-5 h-5 text-slate-400"></i>`;
+                btn.title = "Guardar a favoritos";
+            }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        <?php if ($isLoggedBib && $showCiataBtn): ?>
         // ============================
         // CIATA AI CHAT LOGIC
         // ============================
@@ -842,21 +1143,24 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                if (overlay.classList.contains('open')) {
+                if (overlay && overlay.classList.contains('open')) {
                     overlay.classList.remove('open');
                     overlay.classList.add('closed');
                 } else {
-                    closeBookModal();
+                    if (typeof closeBookModal === 'function') closeBookModal();
                 }
             }
         });
 
-        landingInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleCiataSearch(landingInput.value); });
-        landingSearchBtn.addEventListener('click', () => handleCiataSearch(landingInput.value));
-        chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCiataSearch(chatInput.value); } });
-        chatSendBtn.addEventListener('click', () => handleCiataSearch(chatInput.value));
+        if (landingInput) {
+            landingInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleCiataSearch(landingInput.value); });
+            landingSearchBtn.addEventListener('click', () => handleCiataSearch(landingInput.value));
+            chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleCiataSearch(chatInput.value); } });
+            chatSendBtn.addEventListener('click', () => handleCiataSearch(chatInput.value));
+        }
 
         function transitionToChat() {
+            if (!ciataLanding || !ciataChat) return;
             ciataLanding.style.opacity = '0';
             ciataLanding.style.transform = 'translateY(-30px)';
             setTimeout(() => {
@@ -927,7 +1231,7 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
             div.innerHTML = content;
             messagesContainer.appendChild(div);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
 
         function showTypingIndicator() {
@@ -945,14 +1249,17 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
             const el = document.getElementById(id);
             if (el) el.remove();
         }
+        <?php endif; ?>
 
         // Init
-        window.onload = () => {
-            renderBooks();
-            lucide.createIcons();
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof renderBooks === 'function') renderBooks();
+            if (typeof renderRecent === 'function') renderRecent();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            
             const fy = document.getElementById('footerYear');
             if (fy) fy.textContent = new Date().getFullYear();
-        };
+        });
     </script>
 
     <!-- ============================================== -->
@@ -1104,6 +1411,7 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
     </style>
 
+    <?php if ($isLoggedBib): ?>
     <!-- Accessibility Button -->
     <div class="fixed z-[54]" style="bottom: 108px; right: 32px;">
         <button id="a11y-fab" title="Opciones de Accesibilidad"
@@ -1134,18 +1442,22 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <span class="a11y-pill"></span>
             </button>
 
+            <?php if ($showCiataBtn): ?>
             <!-- Toggle 3: Leer respuestas IA -->
             <button id="btn-tts" class="a11y-toggle-btn" aria-pressed="false">
                 <span>🔊 CIATA por Voz</span>
                 <span class="a11y-pill"></span>
             </button>
+            <?php endif; ?>
 
             <p class="text-[10px] text-slate-400 mt-3 px-1 leading-relaxed">
                 Las preferencias son independientes y se desactivan al recargar la página.
             </p>
         </div>
     </div>
+    <?php endif; ?>
 
+    <?php if ($isLoggedBib): ?>
     <script>
         // ============================
         // ACCESSIBILITY PANEL + CIATA POR VOZ
@@ -1195,6 +1507,7 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 btnLarge.setAttribute('aria-pressed', on);
             });
 
+            <?php if ($showCiataBtn): ?>
             // ---- TTS helper: speak text ----
             function speak(text) {
                 if (!voiceModeEnabled || !text) return;
@@ -1312,28 +1625,34 @@ $documentosDB = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
 
             // ---- CIATA por Voz toggle ----
-            btnTts.addEventListener('click', () => {
-                voiceModeEnabled = !voiceModeEnabled;
-                btnTts.classList.toggle('active', voiceModeEnabled);
-                btnTts.setAttribute('aria-pressed', voiceModeEnabled);
+            if (btnTts) {
+                btnTts.addEventListener('click', () => {
+                    voiceModeEnabled = !voiceModeEnabled;
+                    btnTts.classList.toggle('active', voiceModeEnabled);
+                    btnTts.setAttribute('aria-pressed', voiceModeEnabled);
 
-                // Show/hide mic buttons
-                [landingMicBtn, chatMicBtn].forEach(btn => {
-                    if (btn) btn.classList.toggle('hidden', !voiceModeEnabled);
+                    // Show/hide mic buttons
+                    [landingMicBtn, chatMicBtn].forEach(btn => {
+                        if (btn) btn.classList.toggle('hidden', !voiceModeEnabled);
+                    });
+
+                    if (!voiceModeEnabled) {
+                        window.speechSynthesis.cancel();
+                        if (recognition) { recognition.stop(); recognition = null; }
+                        setMicUI(false);
+                    }
+
+                    // Re-init lucide icons for the new mic buttons
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
                 });
-
-                if (!voiceModeEnabled) {
-                    window.speechSynthesis.cancel();
-                    if (recognition) { recognition.stop(); recognition = null; }
-                    setMicUI(false);
-                }
-
-                // Re-init lucide icons for the new mic buttons
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-            });
+            }
+            <?php endif; ?>
 
         })();
+    </script>
+    <?php endif; ?>
 
+    <script>
         // ============================
         // VISOR DE DOCUMENTOS PROTEGIDO (PDF.js)
         // ============================
