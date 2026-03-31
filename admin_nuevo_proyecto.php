@@ -319,17 +319,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <textarea name="descripcion_larga" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all custom-scroll" placeholder="Escribe el resumen extendido del proyecto..."><?= htmlspecialchars($pro['descripcion_larga']) ?></textarea>
                         </div>
                         
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Objetivos Específicos (Tarjetas)</label>
-                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start">
-                                <i data-lucide="info" class="w-5 h-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0"></i>
-                                <div>
-                                    <p class="text-sm text-blue-800 font-medium">Gestión Avanzada de Objetivos</p>
-                                    <p class="text-xs text-blue-600 mt-1">Los objetivos específicos ahora se gestionan como tarjetas dinámicas con iconos. Podrás agregarlos en la pantalla de <strong>"Editar Proyecto"</strong> una vez que guardes esta información principal.</p>
-                                </div>
-                            </div>
-                            <input type="hidden" name="objetivos_especificos" value="">
-                        </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
@@ -357,6 +346,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                     <input type="file" name="pdf_protocolo" accept=".pdf" class="hidden" onchange="updatePdfName(this)">
                                 </label>
                             </div>
+                        </div>
+
+                        <!-- Sección movida al fondo -->
+                        <div class="pt-4 border-t border-gray-100">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Objetivos Específicos (Tarjetas)</label>
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start">
+                                <i data-lucide="info" class="w-5 h-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0"></i>
+                                <div>
+                                    <p class="text-sm text-blue-800 font-medium text-[11px] uppercase tracking-wide">Gestión Avanzada de Objetivos</p>
+                                    <p class="text-xs text-blue-600 mt-1">Los objetivos específicos ahora se gestionan como tarjetas dinámicas con iconos. Podrás agregarlos en la pantalla de <strong>"Editar Proyecto"</strong> una vez que guardes esta información principal.</p>
+                                </div>
+                            </div>
+                            <input type="hidden" name="objetivos_especificos" value="">
                         </div>
                     </div>
                 </div>

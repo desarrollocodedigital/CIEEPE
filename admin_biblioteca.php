@@ -10,7 +10,7 @@ require_once 'conexion.php';
 $modulo = $_GET['modulo'] ?? 'inicio';
 
 // Map de módulos seguros para la biblioteca
-$modulosValidos = ['inicio', 'usuarios', 'solicitudes', 'recursos', 'documentos', 'configuracion'];
+$modulosValidos = ['inicio', 'usuarios', 'solicitudes', 'recursos', 'documentos', 'configuracion', 'manual'];
 if (!in_array($modulo, $modulosValidos)) {
     $modulo = 'inicio';
 }
@@ -117,12 +117,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_config'])) {
 
         <!-- Navigation Links -->
         <nav class="flex-1 overflow-y-auto sidebar-scroll py-6 space-y-1">
-            <h3 class="px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Biblioteca</h3>
+            <h3 class="px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 font-bold tracking-widest">Principal</h3>
             
             <a href="admin_biblioteca.php?modulo=inicio" class="mx-2 px-4 py-3 flex items-center rounded-lg transition-colors <?= $modulo === 'inicio' ? $activeClass : $inactiveClass ?>">
                 <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>
                 <span class="font-medium text-sm">Dashboard</span>
             </a>
+
+            <h3 class="px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-6 font-bold tracking-widest">Biblioteca</h3>
 
             <a href="admin_biblioteca.php?modulo=recursos" class="mx-2 px-4 py-3 flex items-center rounded-lg transition-colors <?= $modulo === 'recursos' ? $activeClass : $inactiveClass ?>">
                 <i data-lucide="book-open" class="w-5 h-5 mr-3"></i>
@@ -139,10 +141,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_config'])) {
                     <span class="absolute -top-1 right-2 w-4 h-4 bg-emerald-500 text-white text-[8px] flex items-center justify-center rounded-full border border-gray-900"><?= $docsPendientes ?></span>
                     <?php endif; ?>
                 </div>
-                <span class="font-medium text-sm">Revisión de Tesis</span>
+                <span class="font-medium text-sm">Revisión de Documentos</span>
             </a>
 
-            <h3 class="px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-6">Comunidad</h3>
+            <h3 class="px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-6 font-bold tracking-widest">Comunidad</h3>
             
             <a href="admin_biblioteca.php?modulo=solicitudes" class="mx-2 px-4 py-3 flex items-center rounded-lg transition-colors <?= $modulo === 'solicitudes' ? $activeClass : $inactiveClass ?>">
                 <div class="relative">
@@ -162,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_config'])) {
                 <span class="font-medium text-sm">Gestión de Usuarios</span>
             </a>
 
-            <h3 class="px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-6">Sistema</h3>
+            <h3 class="px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-6 font-bold tracking-widest">Sistema</h3>
 
             <a href="admin_biblioteca.php?modulo=configuracion" class="mx-2 px-4 py-3 flex items-center rounded-lg transition-colors <?= $modulo === 'configuracion' ? $activeClass : $inactiveClass ?>">
                 <i data-lucide="settings" class="w-5 h-5 mr-3"></i>
@@ -198,6 +200,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_config'])) {
             $base_url = "admin_biblioteca.php?modulo=recursos" . ($q !== '' ? "&q=".urlencode($q) : "");
         }
         ?>
+
+        <!-- Sección de Manual de Usuario (Fuera del scroll) -->
+        <div class="px-4 py-2 border-t border-gray-800 bg-gray-900/50">
+            <a href="admin_biblioteca.php?modulo=manual" class="flex items-center px-4 py-3 rounded-lg transition-colors <?= $modulo === 'manual' ? $activeClass : 'text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 border-transparent' ?>">
+                <i data-lucide="book" class="w-5 h-5 mr-3"></i>
+                <span class="font-medium text-sm">Manual de Usuario</span>
+            </a>
+        </div>
 
         <!-- User bottom part -->
         <div class="p-4 border-t border-gray-800 bg-gray-950">
@@ -235,6 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_config'])) {
                             case 'documentos': echo "Aprobación de Contenidos"; break;
                             case 'recursos': echo "Catálogo de Recursos"; break;
                             case 'configuracion': echo "Configuración General"; break;
+                            case 'manual': echo "Manual de Usuario"; break;
                         }
                     ?>
                 </h2>
@@ -265,7 +276,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_config'])) {
                             <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4">
                                 <i data-lucide="book-open" class="w-6 h-6"></i>
                             </div>
-                            <h3 class="text-slate-500 text-sm font-medium">Libros y Tesis</h3>
+                            <h3 class="text-slate-500 text-sm font-medium">Libros y Documentos</h3>
                             <p class="text-3xl font-bold text-slate-900">
                                 <?php echo $pdo->query("SELECT COUNT(*) FROM documentos_biblioteca")->fetchColumn(); ?>
                             </p>
@@ -698,7 +709,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_config'])) {
                                     if ($f !== 'todos') {
                                         $whereF = "WHERE estado = '$f'";
                                     }
-                                    $todos = $pdo->query("SELECT * FROM usuarios_biblioteca $whereF ORDER BY id DESC")->fetchAll();
+
+                                    // Paginación
+                                    $por_pagina = 10;
+                                    $pagina_actual = isset($_GET['p']) ? (int)$_GET['p'] : 1;
+                                    if ($pagina_actual < 1) $pagina_actual = 1;
+                                    $offset = ($pagina_actual - 1) * $por_pagina;
+
+                                    $total_usuarios = $pdo->query("SELECT COUNT(*) FROM usuarios_biblioteca $whereF")->fetchColumn();
+                                    $total_paginas = ceil($total_usuarios / $por_pagina);
+
+                                    $todos = $pdo->query("SELECT * FROM usuarios_biblioteca $whereF ORDER BY id DESC LIMIT $por_pagina OFFSET $offset")->fetchAll();
                                     
                                     if (empty($todos)):
                                     ?>
@@ -762,6 +783,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_config'])) {
                                 </tbody>
                             </table>
                         </div>
+                        
+                        <!-- Controles de Paginación -->
+                        <?php if (isset($total_paginas) && $total_paginas > 1): ?>
+                        <div class="px-6 py-4 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-50/30">
+                            <span class="text-xs text-slate-500 font-medium tracking-tight">
+                                Mostrando <?= ($offset + 1) ?> a <?= min($offset + count($todos), $total_usuarios) ?> de <?= $total_usuarios ?> usuarios
+                            </span>
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <?php if ($pagina_actual > 1): ?>
+                                    <a href="admin_biblioteca.php?modulo=usuarios&f=<?= $f ?>&p=<?= $pagina_actual - 1 ?>" class="px-3 py-1.5 border border-slate-200 bg-white text-slate-600 rounded-lg text-[11px] font-bold hover:bg-slate-50 shadow-sm transition-colors">&laquo; Anterior</a>
+                                <?php endif; ?>
+                                
+                                <?php 
+                                // Rango logico para evitar ensanchamiento de UI
+                                $start_page = max(1, $pagina_actual - 2);
+                                $end_page = min($total_paginas, $pagina_actual + 2);
+                                
+                                if ($start_page > 1) {
+                                    echo '<a href="admin_biblioteca.php?modulo=usuarios&f=' . $f . '&p=1" class="px-3 py-1.5 border border-slate-200 bg-white text-slate-600 rounded-lg text-[11px] font-bold hover:bg-slate-50 shadow-sm transition-colors">1</a>';
+                                    if ($start_page > 2) echo '<span class="px-2 text-slate-400 font-black">...</span>';
+                                }
+
+                                for ($i = $start_page; $i <= $end_page; $i++): 
+                                ?>
+                                    <a href="admin_biblioteca.php?modulo=usuarios&f=<?= $f ?>&p=<?= $i ?>" class="px-3 py-1.5 border <?= $i === $pagina_actual ? 'border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-100/50' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50' ?> rounded-lg text-[11px] font-bold transition-all shadow-sm"><?= $i ?></a>
+                                <?php endfor; 
+                                
+                                if ($end_page < $total_paginas) {
+                                    if ($end_page < $total_paginas - 1) echo '<span class="px-2 text-slate-400 font-black">...</span>';
+                                    echo '<a href="admin_biblioteca.php?modulo=usuarios&f=' . $f . '&p=' . $total_paginas . '" class="px-3 py-1.5 border border-slate-200 bg-white text-slate-600 rounded-lg text-[11px] font-bold hover:bg-slate-50 shadow-sm transition-colors">' . $total_paginas . '</a>';
+                                }
+                                ?>
+
+                                <?php if ($pagina_actual < $total_paginas): ?>
+                                    <a href="admin_biblioteca.php?modulo=usuarios&f=<?= $f ?>&p=<?= $pagina_actual + 1 ?>" class="px-3 py-1.5 border border-slate-200 bg-white text-slate-600 rounded-lg text-[11px] font-bold hover:bg-slate-50 shadow-sm transition-colors">Siguiente &raquo;</a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
                     </div>
 
                 <?php elseif ($modulo === 'configuracion'): ?>
@@ -873,6 +933,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_config'])) {
                         </div>
                     </div>
 
+                <?php elseif ($modulo === 'manual'): ?>
+                    <div class="max-w-7xl mx-auto">
+                        <?php include 'admin_manual_biblioteca.php'; ?>
+                    </div>
                 <?php else: ?>
                     <div class="p-12 text-center text-slate-400">
                         <i data-lucide="help-circle" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
