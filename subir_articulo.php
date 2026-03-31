@@ -35,6 +35,77 @@ if ($id_edit) {
     }
 }
 
+// Lógica de Eliminación
+if (isset($_GET['delete'])) {
+    $id_del = (int)$_GET['delete'];
+    $stmt = $pdo->prepare("SELECT * FROM documentos_biblioteca WHERE id = ?");
+    $stmt->execute([$id_del]);
+    $doc_del = $stmt->fetch();
+    
+    if ($doc_del && ($doc_del['id_autor'] == $userId || $userRol === 'admin')) {
+        // REGLA DE NEGOCIO: No permitir eliminar si está publicado (solo admin)
+        if ($doc_del['estado_publicacion'] === 'publicado' && $userRol !== 'admin') {
+            header("Location: subir_articulo.php?modulo=mis_documentos&error=pub_del");
+            exit;
+        }
+
+        if ($doc_del['archivo_documento'] && file_exists($doc_del['archivo_documento'])) @unlink($doc_del['archivo_documento']);
+        if ($doc_del['imagen_portada'] && file_exists($doc_del['imagen_portada'])) @unlink($doc_del['imagen_portada']);
+        
+        $pdo->prepare("DELETE FROM documentos_biblioteca WHERE id = ?")->execute([$id_del]);
+        header("Location: subir_articulo.php?modulo=mis_documentos&success=del");
+        exit;
+    }
+}
+
+// Capturar mensajes por redirección
+if (($_GET['success'] ?? '') === 'del') $success = "Documento eliminado correctamente.";
+if (($_GET['error'] ?? '') === 'pub_del') $error = "Los documentos publicados solo pueden ser eliminados por un administrador.";
+
+// --- Lógica de Búsqueda AJAX (Real-time) ---
+if (isset($_GET['ajax_search'])) {
+    header('Content-Type: application/json');
+    $q = trim($_GET['q'] ?? '');
+    $p = isset($_GET['p']) && is_numeric($_GET['p']) ? (int)$_GET['p'] : 1;
+    $limit = 10;
+    $offset = ($p - 1) * $limit;
+
+    $where = "WHERE id_autor = :userId";
+    $params = [':userId' => $userId];
+    if ($q !== '') {
+        $where .= " AND (titulo LIKE :s1 OR tipo LIKE :s2 OR estado_publicacion LIKE :s3)";
+        $params[':s1'] = "%$q%";
+        $params[':s2'] = "%$q%";
+        $params[':s3'] = "%$q%";
+    }
+
+    // Contar total
+    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM documentos_biblioteca $where");
+    foreach($params as $key => $val) $countStmt->bindValue($key, $val);
+    $countStmt->execute();
+    $total = $countStmt->fetchColumn();
+    $total_pages = ceil($total / $limit);
+
+    // Obtener resultados
+    $stmt = $pdo->prepare("SELECT * FROM documentos_biblioteca $where ORDER BY fecha_subida DESC LIMIT $limit OFFSET $offset");
+    foreach($params as $key => $val) $stmt->bindValue($key, $val);
+    $stmt->execute();
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode([
+        'total' => $total,
+        'total_pages' => $total_pages,
+        'current_page' => $p,
+        'results' => $results,
+        'user_rol' => $userRol
+    ]);
+    exit;
+}
+// --- Fin Lógica AJAX ---
+
+// Pasar el rol al JS
+echo "<script>const userRol = '$userRol';</script>";
+
 // Lógica de Subida / Edición
 $error = $error ?? '';
 $success = '';
@@ -167,8 +238,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['subir_documento']) |
 }
 
 // Clases CSS
-$activeClass = "bg-emerald-800 text-white border-l-4 border-emerald-400";
-$inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-l-4 border-transparent";
+$activeClass = "bg-blue-800 text-white border-l-4 border-blue-400";
+$inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 border-transparent";
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -210,63 +281,93 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
 </head>
 <body class="bg-slate-50 flex h-screen overflow-hidden">
 
-    <!-- Sidebar Lateral -->
-    <aside class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex border-r border-slate-800">
-        <div class="p-6 border-b border-slate-800 flex items-center gap-3">
-            <div class="p-2 bg-emerald-600 rounded-lg"><i data-lucide="microscope" class="w-6 h-6"></i></div>
-            <div>
-                <h2 class="font-bold text-lg leading-tight">CIATA</h2>
-                <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Investigador</p>
+    <!-- Menú Lateral Izquierdo (Sidebar) -->
+    <aside class="w-64 bg-gray-900 flex-shrink-0 flex flex-col transition-all duration-300 z-20 shadow-xl hidden md:flex">
+        <!-- Logo Area -->
+        <div class="h-20 flex items-center px-6 border-b border-gray-800 bg-gray-950 gap-4">
+            <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg">
+                <i data-lucide="microscope" class="w-6 h-6"></i>
+            </div>
+            <div class="min-w-0">
+                <h1 class="text-white font-bold text-lg tracking-wide leading-tight truncate">CIATA</h1>
+                <p class="text-blue-400 text-[10px] uppercase tracking-widest font-bold truncate">Investigador</p>
             </div>
         </div>
-        <nav class="flex-1 mt-6 px-2 space-y-1 overflow-y-auto">
-            <h3 class="px-6 text-xs font-semibold text-slate-500 uppercase mb-2">Principal</h3>
-            <a href="subir_articulo.php?modulo=inicio" class="mx-2 px-4 py-3 flex items-center rounded-lg <?= $modulo === 'inicio' ? $activeClass : $inactiveClass ?>">
-                <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i><span>Dashboard</span>
+
+        <!-- Navigation Links -->
+        <nav class="flex-1 overflow-y-auto sidebar-scroll py-6 space-y-1">
+            <h3 class="px-6 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 font-bold tracking-widest">Principal</h3>
+            
+            <a href="subir_articulo.php?modulo=inicio" class="mx-2 px-4 py-3 flex items-center rounded-lg transition-colors <?= $modulo === 'inicio' ? $activeClass : $inactiveClass ?>">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>
+                <span class="font-medium text-sm">Dashboard</span>
             </a>
-            <a href="subir_articulo.php?modulo=nuevo" class="mx-2 px-4 py-3 flex items-center rounded-lg <?= ($modulo === 'nuevo' && !$id_edit) ? $activeClass : $inactiveClass ?>">
-                <i data-lucide="plus-circle" class="w-5 h-5 mr-3"></i><span>Nuevo Documento</span>
+
+            <a href="subir_articulo.php?modulo=nuevo" class="mx-2 px-4 py-3 flex items-center rounded-lg transition-colors <?= ($modulo === 'nuevo' && !$id_edit) ? $activeClass : $inactiveClass ?>">
+                <i data-lucide="plus-circle" class="w-5 h-5 mr-3"></i>
+                <span class="font-medium text-sm">Nuevo Documento</span>
             </a>
-            <a href="subir_articulo.php?modulo=mis_documentos" class="mx-2 px-4 py-3 flex items-center rounded-lg <?= ($modulo === 'mis_documentos' || $id_edit) ? $activeClass : $inactiveClass ?>">
-                <i data-lucide="library" class="w-5 h-5 mr-3"></i><span>Mis Documentos</span>
-            </a>
-            <h3 class="px-6 text-xs font-semibold text-slate-500 uppercase mt-6 mb-2">Cuenta</h3>
-            <a href="biblioteca.php" class="mx-2 px-4 py-3 flex items-center rounded-lg text-slate-400 hover:bg-slate-800 transition-colors">
-                <i data-lucide="arrow-left" class="w-5 h-5 mr-3"></i><span>Volver</span>
-            </a>
-            <a href="logout_biblioteca.php" class="mx-2 px-4 py-3 flex items-center rounded-lg text-red-400 hover:bg-red-500/10 transition-colors">
-                <i data-lucide="log-out" class="w-5 h-5 mr-3"></i><span>Cerrar Sesión</span>
+
+            <a href="subir_articulo.php?modulo=mis_documentos" class="mx-2 px-4 py-3 flex items-center rounded-lg transition-colors <?= ($modulo === 'mis_documentos' || $id_edit) ? $activeClass : $inactiveClass ?>">
+                <i data-lucide="library" class="w-5 h-5 mr-3"></i>
+                <span class="font-medium text-sm">Mis Documentos</span>
             </a>
         </nav>
+
+        <!-- Sección de Manual de Usuario (Fuera del scroll) -->
+        <div class="px-4 py-2 border-t border-gray-800 bg-gray-900/50">
+            <a href="admin_manual_investigador.php" class="flex items-center px-4 py-3 rounded-lg transition-colors text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 border-transparent">
+                <i data-lucide="book" class="w-5 h-5 mr-3"></i>
+                <span class="font-medium text-sm">Manual de Usuario</span>
+            </a>
+        </div>
+
+        <!-- User bottom part -->
+        <div class="p-4 border-t border-gray-800 bg-gray-950">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shadow-lg">
+                        <?= strtoupper(substr($_SESSION['user_bib_nombre'], 0, 1)) ?>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-white leading-none truncate w-24 border-b-transparent"><?= htmlspecialchars($_SESSION['user_bib_nombre']) ?></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1">
+                    <a href="logout_biblioteca.php" title="Cerrar Sesión" class="text-gray-400 hover:text-red-400 transition-colors bg-gray-900 p-2 rounded-lg">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
     </aside>
 
     <div class="flex-1 flex flex-col h-full overflow-hidden">
-        <header class="h-20 bg-white border-b border-slate-100 flex items-center justify-between px-8">
+        <header class="h-16 bg-white shadow-sm flex items-center justify-between px-6 z-10 flex-shrink-0">
             <div class="flex items-center gap-4">
-                <div class="h-10 w-1 bg-emerald-500 rounded-full"></div>
-                <div>
-                    <h2 class="text-xl font-bold text-slate-800">
-                        <?php 
-                            if ($id_edit) echo "Editando: " . htmlspecialchars($doc_edit['titulo']);
-                            else {
-                                switch($modulo) {
-                                    case 'inicio': echo "Resumen de Actividad"; break;
-                                    case 'nuevo': echo "Subir Nuevo Recurso"; break;
-                                    case 'mis_documentos': echo "Mis Publicaciones"; break;
-                                }
+                <button class="md:hidden text-gray-500 hover:text-gray-900">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <h2 class="text-xl font-bold text-gray-800 hidden sm:block">
+                    <?php 
+                        if ($id_edit) echo "Editando: " . htmlspecialchars($doc_edit['titulo']);
+                        else {
+                            switch($modulo) {
+                                case 'inicio': echo "Resumen de Actividad"; break;
+                                case 'nuevo': echo "Subir Nuevo Recurso"; break;
+                                case 'mis_documentos': echo "Mis Publicaciones"; break;
                             }
-                        ?>
-                    </h2>
-                </div>
+                        }
+                    ?>
+                </h2>
             </div>
-            <div class="flex items-center gap-3 border-l border-slate-100 pl-6">
-                <div class="text-right hidden sm:block">
-                    <p class="text-sm font-bold text-slate-900"><?= htmlspecialchars($_SESSION['user_bib_nombre']) ?></p>
-                    <p class="text-[10px] font-bold text-emerald-600 uppercase"><?= htmlspecialchars($_SESSION['user_bib_rol']) ?></p>
-                </div>
-                <div class="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center font-bold">
-                    <?= strtoupper(substr($_SESSION['user_bib_nombre'], 0, 1)) ?>
-                </div>
+            
+            <div class="flex items-center space-x-4">
+                <a href="biblioteca.php" class="inline-flex items-center text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 transition-colors">
+                    <i data-lucide="library" class="w-4 h-4 mr-1.5"></i> Ver Biblioteca
+                </a>
+                <span class="text-sm text-gray-400 hidden sm:block">|</span>
+                <span class="text-sm font-medium text-gray-600 hidden sm:block"><?= htmlspecialchars($_SESSION['user_bib_nombre']) ?></span>
             </div>
         </header>
 
@@ -276,15 +377,11 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
                 <!-- Sub-Cabecera de Navegación -->
                 <div class="flex items-center justify-between mb-8">
                     <div class="flex items-center">
-                        <?php 
-                            $backUrl = 'subir_articulo.php?modulo=inicio';
-                            if ($id_edit) $backUrl = 'subir_articulo.php?modulo=mis_documentos';
-                            else if ($modulo === 'nuevo') $backUrl = 'subir_articulo.php?modulo=inicio';
-                            else if ($modulo === 'mis_documentos') $backUrl = 'subir_articulo.php?modulo=inicio';
-                        ?>
-                        <a href="<?= $backUrl ?>" class="mr-4 text-gray-400 hover:text-emerald-600 transition-colors p-2 bg-white rounded-xl shadow-sm border border-slate-100">
-                            <i data-lucide="arrow-left" class="w-6 h-6"></i>
-                        </a>
+                        <?php if ($id_edit): ?>
+                            <a href="subir_articulo.php?modulo=mis_documentos" class="mr-4 text-gray-400 hover:text-emerald-600 transition-colors p-2 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
+                                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                            </a>
+                        <?php endif; ?>
                         <div>
                             <h2 class="text-2xl font-bold text-slate-900">
                                 <?php 
@@ -314,27 +411,157 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
                 </div>
                 <?php endif; ?>
 
-                <?php if ($modulo === 'inicio'): ?>
+                <?php if ($modulo === 'inicio'): 
+                    // Consultas para las métricas del dashboard
+                    
+                    // 1. Documentos Recientes
+                    $stmtRecientes = $pdo->prepare("SELECT id, titulo, fecha_subida, estado_publicacion FROM documentos_biblioteca WHERE id_autor = ? ORDER BY fecha_subida DESC LIMIT 5");
+                    $stmtRecientes->execute([$userId]);
+                    $recientes = $stmtRecientes->fetchAll();
+
+                    // 2. Favoritos
+                    $stmtFavoritos = $pdo->prepare("SELECT u.nombre as usuario_nombre, d.titulo, f.fecha_agregado FROM favoritos_biblioteca f JOIN usuarios_biblioteca u ON f.id_usuario = u.id JOIN documentos_biblioteca d ON f.id_documento = d.id WHERE d.id_autor = ? ORDER BY f.fecha_agregado DESC LIMIT 10");
+                    $stmtFavoritos->execute([$userId]);
+                    $favoritos = $stmtFavoritos->fetchAll();
+
+                    // 3. Vistas
+                    $stmtVistas = $pdo->prepare("SELECT u.nombre as usuario_nombre, d.titulo, v.fecha_visto FROM vistos_biblioteca v JOIN usuarios_biblioteca u ON v.id_usuario = u.id JOIN documentos_biblioteca d ON v.id_documento = d.id WHERE d.id_autor = ? ORDER BY v.fecha_visto DESC LIMIT 10");
+                    $stmtVistas->execute([$userId]);
+                    $vistas = $stmtVistas->fetchAll();
+                ?>
                     <!-- DASHBOARD INVESTIGADOR -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                            <h4 class="text-2xl font-bold text-slate-900"><?php echo $pdo->query("SELECT COUNT(*) FROM documentos_biblioteca WHERE id_autor = $userId")->fetchColumn(); ?></h4>
-                            <p class="text-xs text-slate-500 mt-1">Total documentos</p>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                            <h4 class="text-3xl font-bold text-slate-900"><?php echo $pdo->query("SELECT COUNT(*) FROM documentos_biblioteca WHERE id_autor = $userId")->fetchColumn(); ?></h4>
+                            <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mt-1">Total Disp.</p>
                         </div>
-                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                            <h4 class="text-2xl font-bold text-emerald-600"><?php echo $pdo->query("SELECT COUNT(*) FROM documentos_biblioteca WHERE id_autor = $userId AND estado_publicacion = 'publicado'")->fetchColumn(); ?></h4>
-                            <p class="text-xs text-slate-500 mt-1">Publicados</p>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-2 h-full bg-emerald-500"></div>
+                            <h4 class="text-3xl font-bold text-emerald-600"><?php echo $pdo->query("SELECT COUNT(*) FROM documentos_biblioteca WHERE id_autor = $userId AND estado_publicacion = 'publicado'")->fetchColumn(); ?></h4>
+                            <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mt-1">Publicados</p>
                         </div>
-                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                            <h4 class="text-2xl font-bold text-amber-500"><?php echo $pdo->query("SELECT COUNT(*) FROM documentos_biblioteca WHERE id_autor = $userId AND estado_publicacion = 'pendiente'")->fetchColumn(); ?></h4>
-                            <p class="text-xs text-slate-500 mt-1">En revisión</p>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-2 h-full bg-amber-500"></div>
+                            <h4 class="text-3xl font-bold text-amber-500"><?php echo $pdo->query("SELECT COUNT(*) FROM documentos_biblioteca WHERE id_autor = $userId AND estado_publicacion = 'pendiente'")->fetchColumn(); ?></h4>
+                            <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mt-1">En revisión</p>
                         </div>
-                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                            <h4 class="text-2xl font-bold text-slate-400"><?php echo $pdo->query("SELECT COUNT(*) FROM documentos_biblioteca WHERE id_autor = $userId AND estado_publicacion = 'borrador'")->fetchColumn(); ?></h4>
-                            <p class="text-xs text-slate-500 mt-1">Borradores</p>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-2 h-full bg-slate-300"></div>
+                            <h4 class="text-3xl font-bold text-slate-400"><?php echo $pdo->query("SELECT COUNT(*) FROM documentos_biblioteca WHERE id_autor = $userId AND estado_publicacion = 'borrador'")->fetchColumn(); ?></h4>
+                            <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mt-1">Borradores</p>
                         </div>
                     </div>
-                    <!-- Recent items ... -->
+                    
+                    <!-- MÉTRICAS DETALLADAS: FILA 1 (RECIEENTES) -->
+                    <div class="mb-6">
+                        <!-- Columna 1: Documentos Recientes -->
+                        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col hover:border-blue-200 transition-colors w-full">
+                            <div class="p-5 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+                                <h3 class="font-bold text-slate-800 flex items-center gap-2 text-sm"><i data-lucide="file-clock" class="w-4 h-4 text-blue-500"></i> Documentos Recientes</h3>
+                                <a href="subir_articulo.php?modulo=mis_documentos" class="text-xs text-blue-600 font-bold hover:underline">Ver todo</a>
+                            </div>
+                            <div class="p-0 flex-1 overflow-y-auto custom-scroll max-h-[300px]">
+                                <?php if (empty($recientes)): ?>
+                                    <div class="p-8 flex flex-col items-center justify-center text-center">
+                                        <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3"><i data-lucide="folder-open" class="w-6 h-6 text-slate-300"></i></div>
+                                        <p class="text-sm font-medium text-slate-500">No hay documentos</p>
+                                        <p class="text-xs text-slate-400 mt-1">Sube tu primer archivo</p>
+                                    </div>
+                                <?php else: ?>
+                                    <ul class="divide-y divide-slate-50">
+                                        <?php foreach($recientes as $doc): ?>
+                                            <li class="p-4 hover:bg-slate-50/80 transition-colors">
+                                                <div class="flex items-center justify-between gap-4">
+                                                    <div class="flex flex-col gap-1 min-w-0">
+                                                        <span class="text-sm font-bold text-slate-700 truncate" title="<?= htmlspecialchars($doc['titulo']) ?>"><?= htmlspecialchars($doc['titulo']) ?></span>
+                                                        <span class="text-[10px] text-slate-400 font-medium flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> <?= date('d M Y', strtotime($doc['fecha_subida'])) ?></span>
+                                                    </div>
+                                                    <div class="flex items-center gap-3 flex-shrink-0">
+                                                        <?php 
+                                                            $estadoClass = 'bg-slate-100 text-slate-500';
+                                                            if($doc['estado_publicacion'] === 'publicado') $estadoClass = 'bg-emerald-100 text-emerald-700';
+                                                            if($doc['estado_publicacion'] === 'pendiente') $estadoClass = 'bg-amber-100 text-amber-700';
+                                                        ?>
+                                                        <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider <?= $estadoClass ?>"><?= $doc['estado_publicacion'] ?></span>
+                                                        <a href="subir_articulo.php?edit=<?= $doc['id'] ?>" class="p-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors">
+                                                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MÉTRICAS DETALLADAS: FILA 2 (INTERACCIONES) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+                        <!-- Columna 2: Interacciones (Favoritos) -->
+                        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col hover:border-yellow-200 transition-colors">
+                            <div class="p-5 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+                                <h3 class="font-bold text-slate-800 flex items-center gap-2 text-sm"><i data-lucide="star" class="w-4 h-4 text-yellow-500 fill-yellow-500"></i> Guardado Por</h3>
+                            </div>
+                            <div class="p-0 flex-1 overflow-y-auto custom-scroll max-h-[350px]">
+                                <?php if (empty($favoritos)): ?>
+                                    <div class="p-8 flex flex-col items-center justify-center text-center">
+                                        <div class="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center mb-3"><i data-lucide="star-off" class="w-6 h-6 text-yellow-200"></i></div>
+                                        <p class="text-sm font-medium text-slate-500">Sin favoritos</p>
+                                        <p class="text-xs text-slate-400 mt-1">Tus lectores aparecerán aquí</p>
+                                    </div>
+                                <?php else: ?>
+                                    <ul class="divide-y divide-slate-50">
+                                        <?php foreach($favoritos as $fav): ?>
+                                            <li class="p-4 hover:bg-slate-50/80 transition-colors">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0 mt-0.5 border border-yellow-200"><i data-lucide="user" class="w-4 h-4 text-yellow-600"></i></div>
+                                                    <div class="min-w-0 flex-1">
+                                                        <p class="text-xs text-slate-800 font-medium leading-tight"><strong class="text-slate-900"><?= htmlspecialchars($fav['usuario_nombre']) ?></strong> se interesó en:</p>
+                                                        <p class="text-xs text-slate-500 line-clamp-1 mt-0.5 italic">"<?= htmlspecialchars($fav['titulo']) ?>"</p>
+                                                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1.5 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> <?= date('d M Y, H:i', strtotime($fav['fecha_agregado'])) ?></p>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <!-- Columna 3: Visualizaciones -->
+                        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col hover:border-indigo-200 transition-colors">
+                            <div class="p-5 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+                                <h3 class="font-bold text-slate-800 flex items-center gap-2 text-sm"><i data-lucide="eye" class="w-4 h-4 text-indigo-500"></i> Vistos Por</h3>
+                            </div>
+                            <div class="p-0 flex-1 overflow-y-auto custom-scroll max-h-[350px]">
+                                <?php if (empty($vistas)): ?>
+                                    <div class="p-8 flex flex-col items-center justify-center text-center">
+                                        <div class="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mb-3"><i data-lucide="eye-off" class="w-6 h-6 text-indigo-200"></i></div>
+                                        <p class="text-sm font-medium text-slate-500">Sin visualizaciones</p>
+                                        <p class="text-xs text-slate-400 mt-1">El registro de lecturas está vacío</p>
+                                    </div>
+                                <?php else: ?>
+                                    <ul class="divide-y divide-slate-50">
+                                        <?php foreach($vistas as $vista): ?>
+                                            <li class="p-4 hover:bg-slate-50/80 transition-colors">
+                                                <div class="flex items-start gap-3">
+                                                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-0.5 border border-indigo-200"><i data-lucide="eye" class="w-4 h-4 text-indigo-600"></i></div>
+                                                    <div class="min-w-0 flex-1">
+                                                        <p class="text-xs text-slate-800 font-medium leading-tight">Visto por <strong class="text-slate-900"><?= htmlspecialchars($vista['usuario_nombre']) ?></strong>:</p>
+                                                        <p class="text-xs text-slate-500 line-clamp-1 mt-0.5 italic">"<?= htmlspecialchars($vista['titulo']) ?>"</p>
+                                                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-1.5 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> <?= date('d M Y, H:i', strtotime($vista['fecha_visto'])) ?></p>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                    </div>
                 <?php endif; ?>
 
                 <?php if ($modulo === 'nuevo'): ?>
@@ -529,63 +756,377 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
                 <?php endif; ?>
 
                 <?php if ($modulo === 'mis_documentos'): ?>
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-slate-500 text-[11px] font-bold uppercase">
-                                <tr><th class="px-6 py-4">Documento</th><th class="px-6 py-4">Estado</th><th class="px-6 py-4">Fecha</th><th class="px-6 py-4 text-center">Acciones</th></tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                <?php
-                                $misDocs = $pdo->query("SELECT * FROM documentos_biblioteca WHERE id_autor = $userId ORDER BY fecha_subida DESC")->fetchAll();
-                                foreach($misDocs as $doc):
-                                    // El autor solo edita si es borrador o rechazado (para corregir)
-                                    $puedeEditar = (!in_array($doc['estado_publicacion'], ['publicado', 'pendiente']) || $userRol === 'admin');
-                                ?>
-                                <tr class="hover:bg-slate-50">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded bg-slate-100 flex items-center justify-center shrink-0">
-                                                <?php if($doc['imagen_portada']): ?><img src="<?= $doc['imagen_portada'] ?>" class="w-full h-full object-cover rounded"><?php else: ?><i data-lucide="file-text" class="w-5 h-5 text-slate-300"></i><?php endif; ?>
-                                            </div>
-                                            <div><p class="text-sm font-bold text-slate-900"><?= htmlspecialchars($doc['titulo']) ?></p><p class="text-[10px] text-blue-600 font-bold"><?= $doc['tipo'] ?></p></div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2.5 py-1 rounded-full text-[9px] font-bold uppercase 
-                                            <?= $doc['estado_publicacion'] === 'publicado' ? 'bg-emerald-100 text-emerald-700' : 
-                                               ($doc['estado_publicacion'] === 'borrador' ? 'bg-slate-100 text-slate-600' : 
-                                               ($doc['estado_publicacion'] === 'suspendido' ? 'bg-amber-100 text-amber-700' :
-                                               ($doc['estado_publicacion'] === 'rechazado' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'))) ?>">
-                                            <?= $doc['estado_publicacion'] ?>
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 text-xs text-slate-500"><?= date('d/m/Y', strtotime($doc['fecha_subida'])) ?></td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center justify-center gap-2">
-                                            <button onclick="openDocumentViewer('<?= $doc['archivo_documento'] ?>', '<?= addslashes($doc['titulo']) ?>')" 
-                                                class="p-2 bg-slate-50 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" 
-                                                title="Ver PDF">
-                                                <i data-lucide="eye" class="w-4 h-4"></i>
-                                            </button>
-                                            <?php if ($puedeEditar): ?>
-                                            <a href="subir_articulo.php?edit=<?= $doc['id'] ?>" class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all" title="Editar">
-                                                <i data-lucide="edit-3" class="w-4 h-4"></i>
-                                            </a>
-                                            <?php else: ?>
-                                            <span class="p-2 text-slate-300 cursor-not-allowed" title="<?= ($doc['estado_publicacion'] === 'publicado') ? 'Publicado' : 'En Revisión (Pendiente)' ?> - Solo lectura">
-                                                <i data-lucide="lock" class="w-4 h-4"></i>
-                                            </span>
-                                            <?php endif; ?>
-                                            <button class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
-                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                    <?php
+                    // Configuración de Paginación y Búsqueda
+                    $limit = 10;
+                    $page = isset($_GET['p']) && is_numeric($_GET['p']) ? (int)$_GET['p'] : 1;
+                    $search = trim($_GET['q'] ?? '');
+                    $offset = ($page - 1) * $limit;
+
+                    $where = "WHERE id_autor = :userId";
+                    $params = [':userId' => $userId];
+                    if ($search !== '') {
+                        $where .= " AND (titulo LIKE :s1 OR tipo LIKE :s2 OR estado_publicacion LIKE :s3)";
+                        $params[':s1'] = "%$search%";
+                        $params[':s2'] = "%$search%";
+                        $params[':s3'] = "%$search%";
+                    }
+
+                    // Contar total para paginación
+                    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM documentos_biblioteca $where");
+                    foreach($params as $key => $val) $countStmt->bindValue($key, $val);
+                    $countStmt->execute();
+                    $totalRows = $countStmt->fetchColumn();
+                    $totalPages = ceil($totalRows / $limit);
+                    if ($page > $totalPages && $totalPages > 0) $page = $totalPages;
+
+                    // Consultar página actual
+                    $stmt = $pdo->prepare("SELECT * FROM documentos_biblioteca $where ORDER BY fecha_subida DESC LIMIT $limit OFFSET $offset");
+                    foreach($params as $key => $val) $stmt->bindValue($key, $val);
+                    $stmt->execute();
+                    $misDocs = $stmt->fetchAll();
+                    ?>
+
+                    <!-- Header y Acciones (Estilo Admin) -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                        <div>
+                            <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Mis Documentos</h2>
+                            <p class="text-slate-500 text-sm mt-1 font-medium">Gestiona tu acervo personal (<span id="total-results-count" class="text-emerald-600 font-bold"><?= $totalRows ?></span> registros en total)</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <!-- Buscador AJAX -->
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <i data-lucide="search" class="w-4 h-4 text-slate-400" id="search-spinner-icon"></i>
+                                    <!-- Spinner de carga oculto por defecto -->
+                                    <svg id="search-loader" class="hidden w-4 h-4 text-emerald-500 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                </div>
+                                <input type="text" id="inv-search-ajax" placeholder="Buscar documento..." autocomplete="off"
+                                    value="<?= htmlspecialchars($search) ?>"
+                                    class="pl-9 pr-9 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none w-64 transition-all bg-white shadow-sm">
+                                <button type="button" id="clear-search-ajax" class="<?= $search === '' ? 'hidden' : '' ?> absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-red-500 transition-colors">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <a href="subir_articulo.php?modulo=nuevo" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-emerald-600/20 transition-all flex items-center text-sm">
+                                <i data-lucide="plus" class="w-5 h-5 mr-2"></i> Añadir Nuevo
+                            </a>
+                        </div>
                     </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden min-h-[400px] flex flex-col">
+                        <div class="overflow-x-auto flex-grow">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-widest border-b border-slate-100">
+                                    <tr>
+                                        <th class="px-6 py-4 font-extrabold">Documento</th>
+                                        <th class="px-6 py-4 font-extrabold">Estado</th>
+                                        <th class="px-6 py-4 font-extrabold">Fecha Subida</th>
+                                        <th class="px-6 py-4 text-right font-extrabold">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="docs-tbody-ajax" class="divide-y divide-slate-100">
+                                    <?php if(empty($misDocs)): ?>
+                                        <tr>
+                                            <td colspan="4" class="px-6 py-20 text-center">
+                                                <div class="flex flex-col items-center">
+                                                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mb-4 ring-8 ring-slate-50/50">
+                                                        <i data-lucide="file-question" class="w-8 h-8"></i>
+                                                    </div>
+                                                    <p class="text-slate-500 font-bold">No hay documentos que coincidan</p>
+                                                    <p class="text-slate-400 text-xs mt-1">Verifica los términos de búsqueda o añade uno nuevo.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach($misDocs as $doc):
+                                            $puedeEditar = (!in_array($doc['estado_publicacion'], ['publicado', 'pendiente']) || $userRol === 'admin');
+                                        ?>
+                                        <tr class="hover:bg-slate-50/30 transition-colors group">
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center gap-4">
+                                                    <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200/50 overflow-hidden group-hover:scale-105 transition-transform shadow-sm">
+                                                        <?php if($doc['imagen_portada']): ?>
+                                                            <img src="<?= $doc['imagen_portada'] ?>" class="w-full h-full object-cover">
+                                                        <?php else: ?>
+                                                            <i data-lucide="file-text" class="w-6 h-6 text-slate-300"></i>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <div class="min-w-0 flex-1">
+                                                        <p class="text-sm font-bold text-slate-900 leading-tight mb-1 truncate max-w-[300px]"><?= htmlspecialchars($doc['titulo']) ?></p>
+                                                        <span class="text-[9px] px-2 py-0.5 rounded-md bg-white text-slate-500 font-extrabold uppercase tracking-tight border border-slate-200 shadow-sm inline-block">
+                                                            <?= $doc['tipo'] ?>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest
+                                                    <?= $doc['estado_publicacion'] === 'publicado' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 
+                                                       ($doc['estado_publicacion'] === 'borrador' ? 'bg-slate-100 text-slate-600 border border-slate-200' : 
+                                                       ($doc['estado_publicacion'] === 'suspendido' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                                       ($doc['estado_publicacion'] === 'rechazado' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-amber-100 text-amber-700'))) ?>">
+                                                    <?= $doc['estado_publicacion'] ?>
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 text-xs font-semibold text-slate-500 italic"><?= date('d M, Y', strtotime($doc['fecha_subida'])) ?></td>
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center justify-end gap-2">
+                                                    <button onclick="openDocumentViewer('<?= $doc['archivo_documento'] ?>', '<?= addslashes($doc['titulo']) ?>')" 
+                                                        class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all" 
+                                                        title="Ver PDF">
+                                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                                    </button>
+                                                    <?php if ($puedeEditar): ?>
+                                                    <a href="subir_articulo.php?edit=<?= $doc['id'] ?>" class="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all" title="Editar">
+                                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                                    </a>
+                                                    <?php else: ?>
+                                                    <span class="p-2 text-slate-300 cursor-not-allowed" title="Documento Protegido">
+                                                        <i data-lucide="lock" class="w-4 h-4"></i>
+                                                    </span>
+                                                    <?php endif; ?>
+
+                                                    <?php if ($doc['estado_publicacion'] !== 'publicado' || $userRol === 'admin'): ?>
+                                                    <button onclick="confirmarEliminar(<?= $doc['id'] ?>)" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all" title="Eliminar">
+                                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                    </button>
+                                                    <?php else: ?>
+                                                    <span class="p-2 text-slate-300 cursor-not-allowed" title="Publicado - Solo Admin puede eliminar">
+                                                        <i data-lucide="lock" class="w-4 h-4"></i>
+                                                    </span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Paginación AJAX -->
+                        <div id="pagination-container-ajax">
+                            <?php if($totalPages > 1): ?>
+                            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest" id="results-meta-text">
+                                    Mostrando <strong class="text-slate-900"><?= $offset + 1 ?></strong> a <strong class="text-slate-900"><?= min($offset + $limit, $totalRows) ?></strong> de <strong class="text-slate-900"><?= $totalRows ?></strong> documentos
+                                </span>
+                                <div class="flex items-center gap-1">
+                                    <?php if($page > 1): ?>
+                                        <button onclick="searchDocsAJAX('<?= $search ?>', <?= $page - 1 ?>)" class="px-3 py-2 text-xs font-bold text-slate-500 bg-white border border-slate-200 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all shadow-sm">
+                                            &laquo; Anterior
+                                        </button>
+                                    <?php else: ?>
+                                        <span class="px-3 py-2 text-xs font-bold text-slate-300 bg-slate-50 border border-slate-100 rounded-xl cursor-not-allowed">&laquo; Anterior</span>
+                                    <?php endif; ?>
+
+                                    <div class="hidden sm:flex items-center gap-1 mx-2">
+                                        <?php 
+                                        $start = max(1, $page - 2);
+                                        $end = min($totalPages, $start + 4);
+                                        if($end - $start < 4) $start = max(1, $end - 4);
+                                        for($i = $start; $i <= $end; $i++): 
+                                        ?>
+                                            <button onclick="searchDocsAJAX('<?= $search ?>', <?= $i ?>)" class="w-9 h-9 flex items-center justify-center rounded-xl text-xs font-extrabold transition-all <?= $i == $page ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'bg-white border border-slate-200 text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 shadow-sm' ?>">
+                                                <?= $i ?>
+                                            </button>
+                                        <?php endfor; ?>
+                                    </div>
+
+                                    <?php if($page < $totalPages): ?>
+                                        <button onclick="searchDocsAJAX('<?= $search ?>', <?= $page + 1 ?>)" class="px-3 py-2 text-xs font-bold text-slate-500 bg-white border border-slate-200 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all shadow-sm">
+                                            Siguiente &raquo;
+                                        </button>
+                                    <?php else: ?>
+                                        <span class="px-3 py-2 text-xs font-bold text-slate-300 bg-slate-50 border border-slate-100 rounded-xl cursor-not-allowed">Siguiente &raquo;</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Lógica JS para Búsqueda en Tiempo Real -->
+                    <script>
+                        (function() {
+                            const input = document.getElementById('inv-search-ajax');
+                            const clearBtn = document.getElementById('clear-search-ajax');
+                            const tbody = document.getElementById('docs-tbody-ajax');
+                            const totalCountEl = document.getElementById('total-results-count');
+                            const metaTextEl = document.getElementById('results-meta-text');
+                            const paginationContainer = document.getElementById('pagination-container-ajax');
+                            const searchIcon = document.getElementById('search-spinner-icon');
+                            const searchLoader = document.getElementById('search-loader');
+                            
+                            let debounceTimeout;
+
+                            function escapeHTML(str) {
+                                return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+                            }
+
+                            function formatDate(dateStr) {
+                                if (!dateStr) return '';
+                                const date = new Date(dateStr);
+                                const options = { day: '2-digit', month: 'short', year: 'numeric' };
+                                return date.toLocaleDateString('es-ES', options).replace(/\./g, '');
+                            }
+
+                            function renderTableRows(docs) {
+                                if (docs.length === 0) {
+                                    tbody.innerHTML = `
+                                        <tr>
+                                            <td colspan="4" class="px-6 py-20 text-center">
+                                                <div class="flex flex-col items-center">
+                                                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mb-4 ring-8 ring-slate-50/50">
+                                                        <i data-lucide="file-question" class="w-8 h-8"></i>
+                                                    </div>
+                                                    <p class="text-slate-500 font-bold">No hay documentos que coincidan</p>
+                                                    <p class="text-slate-400 text-xs mt-1">Verifica los términos de búsqueda o añade uno nuevo.</p>
+                                                </div>
+                                            </td>
+                                        </tr>`;
+                                    lucide.createIcons();
+                                    return;
+                                }
+
+                                tbody.innerHTML = docs.map(doc => {
+                                    const estadoClass = doc.estado_publicacion === 'publicado' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 
+                                                       (doc.estado_publicacion === 'borrador' ? 'bg-slate-100 text-slate-600 border border-slate-200' : 
+                                                       (doc.estado_publicacion === 'suspendido' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                                       (doc.estado_publicacion === 'rechazado' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-amber-100 text-amber-700')));
+                                    
+                                    const canEdit = !['publicado', 'pendiente'].includes(doc.estado_publicacion) || userRol === 'admin';
+                                    const canDelete = doc.estado_publicacion !== 'publicado' || userRol === 'admin';
+
+                                    return `
+                                        <tr class="hover:bg-slate-50/30 transition-colors group">
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center gap-4">
+                                                    <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200/50 overflow-hidden group-hover:scale-105 transition-transform shadow-sm">
+                                                        ${doc.imagen_portada ? `<img src="${doc.imagen_portada}" class="w-full h-full object-cover">` : `<i data-lucide="file-text" class="w-6 h-6 text-slate-300"></i>`}
+                                                    </div>
+                                                    <div class="min-w-0 flex-1">
+                                                        <p class="text-sm font-bold text-slate-900 leading-tight mb-1 truncate max-w-[300px]">${escapeHTML(doc.titulo)}</p>
+                                                        <span class="text-[9px] px-2 py-0.5 rounded-md bg-white text-slate-500 font-extrabold uppercase tracking-tight border border-slate-200 shadow-sm inline-block">
+                                                            ${doc.tipo}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest ${estadoClass}">
+                                                    ${doc.estado_publicacion}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 text-xs font-semibold text-slate-500 italic">${formatDate(doc.fecha_subida)}</td>
+                                            <td class="px-6 py-4 text-right">
+                                                <div class="flex items-center justify-end gap-2">
+                                                    <button onclick="openDocumentViewer('${doc.archivo_documento}', '${doc.titulo.replace(/'/g, "\\'")}')" 
+                                                        class="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all" 
+                                                        title="Ver PDF">
+                                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                                    </button>
+                                                    ${canEdit ? `
+                                                    <a href="subir_articulo.php?edit=${doc.id}" class="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all" title="Editar">
+                                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                                    </a>
+                                                    ` : `
+                                                    <span class="p-2 text-slate-300 cursor-not-allowed" title="Documento Protegido">
+                                                        <i data-lucide="lock" class="w-4 h-4"></i>
+                                                    </span>
+                                                    `}
+                                                    
+                                                    ${canDelete ? `
+                                                    <button onclick="confirmarEliminar(${doc.id})" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all" title="Eliminar">
+                                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                    </button>
+                                                    ` : `
+                                                    <span class="p-2 text-slate-300 cursor-not-allowed" title="Publicado - Solo Admin puede eliminar">
+                                                        <i data-lucide="lock" class="w-4 h-4"></i>
+                                                    </span>
+                                                    `}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('');
+                                lucide.createIcons();
+                            }
+
+                            function renderPagination(data, q) {
+                                if (data.total_pages <= 1) {
+                                    paginationContainer.innerHTML = '';
+                                    return;
+                                }
+
+                                const startRecord = ((data.current_page - 1) * 10) + 1;
+                                const endRecord = Math.min(data.current_page * 10, data.total);
+
+                                let buttons = `
+                                    <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                            Mostrando <strong class="text-slate-900">${startRecord}</strong> a <strong class="text-slate-900">${endRecord}</strong> de <strong class="text-slate-900">${data.total}</strong> documentos
+                                        </span>
+                                        <div class="flex items-center gap-1">
+                                            ${data.current_page > 1 ? `<button onclick="searchDocsAJAX('${escapeHTML(q)}', ${data.current_page - 1})" class="px-3 py-2 text-xs font-bold text-slate-500 bg-white border border-slate-200 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all shadow-sm">&laquo; Anterior</button>` : `<span class="px-3 py-2 text-xs font-bold text-slate-300 bg-slate-50 border border-slate-100 rounded-xl cursor-not-allowed">&laquo; Anterior</span>`}
+                                            
+                                            <div class="hidden sm:flex items-center gap-1 mx-2">`;
+                                
+                                const startPage = Math.max(1, data.current_page - 2);
+                                const endPage = Math.min(data.total_pages, startPage + 4);
+                                
+                                for (let i = startPage; i <= endPage; i++) {
+                                    buttons += `
+                                        <button onclick="searchDocsAJAX('${escapeHTML(q)}', ${i})" class="w-9 h-9 flex items-center justify-center rounded-xl text-xs font-extrabold transition-all ${i === data.current_page ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'bg-white border border-slate-200 text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 shadow-sm'}">${i}</button>
+                                    `;
+                                }
+
+                                buttons += `</div>
+                                            ${data.current_page < data.total_pages ? `<button onclick="searchDocsAJAX('${escapeHTML(q)}', ${data.current_page + 1})" class="px-3 py-2 text-xs font-bold text-slate-500 bg-white border border-slate-200 rounded-xl hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all shadow-sm">Siguiente &raquo;</button>` : `<span class="px-3 py-2 text-xs font-bold text-slate-300 bg-slate-50 border border-slate-100 rounded-xl cursor-not-allowed">Siguiente &raquo;</span>`}
+                                        </div>
+                                    </div>`;
+                                
+                                paginationContainer.innerHTML = buttons;
+                            }
+
+                            window.searchDocsAJAX = function(q, p = 1) {
+                                searchIcon.classList.add('hidden');
+                                searchLoader.classList.remove('hidden');
+                                
+                                fetch(`subir_articulo.php?ajax_search=1&q=${encodeURIComponent(q)}&p=${p}`)
+                                    .then(r => r.json())
+                                    .then(data => {
+                                        renderTableRows(data.results);
+                                        renderPagination(data, q);
+                                        totalCountEl.textContent = data.total;
+                                        
+                                        // Actualizar URL sin recargar
+                                        const url = new URL(window.location);
+                                        if (q) url.searchParams.set('q', q); else url.searchParams.delete('q');
+                                        if (p > 1) url.searchParams.set('p', p); else url.searchParams.delete('p');
+                                        window.history.replaceState({}, '', url);
+                                    })
+                                    .finally(() => {
+                                        searchIcon.classList.remove('hidden');
+                                        searchLoader.classList.add('hidden');
+                                    });
+                            };
+
+                            input.addEventListener('input', function() {
+                                const q = this.value;
+                                clearBtn.classList.toggle('hidden', q === '');
+                                clearTimeout(debounceTimeout);
+                                debounceTimeout = setTimeout(() => searchDocsAJAX(q, 1), 300);
+                            });
+
+                            clearBtn.addEventListener('click', function() {
+                                input.value = '';
+                                clearBtn.classList.add('hidden');
+                                searchDocsAJAX('', 1);
+                            });
+                        })();
+                    </script>
                 <?php endif; ?>
             </div>
         </main>
@@ -699,6 +1240,12 @@ $inactiveClass = "text-emerald-100 hover:bg-emerald-800 hover:text-white border-
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             document.body.style.overflow = ''; 
+        }
+
+        function confirmarEliminar(id) {
+            if (confirm('¿Estás seguro de que deseas eliminar este documento permanentemente? Esta acción no se puede deshacer.')) {
+                window.location.href = `subir_articulo.php?delete=${id}`;
+            }
         }
 
         // Custom Select Logic
