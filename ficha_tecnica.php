@@ -93,7 +93,7 @@ function renderInvestigadorLink($nombre, $data) {
     <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 py-2 bg-white text-blue-900 shadow-md">
         <div class="container mx-auto px-4 md:px-8 flex justify-between items-center">
             <a href="index.html#inicio" id="nav-logo" class="flex items-center">
-                <img src="./img/logo.png" alt="CIEEPE ENEES Logo" class="h-12 w-auto md:h-14">
+                <img src="<?= htmlspecialchars($site_logo) ?>" alt="CIEEPE ENEES Logo" class="h-12 w-auto md:h-14">
             </a>
             <div class="hidden md:flex space-x-6 lg:space-x-8">
                 <a href="index.html#inicio" class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Inicio</a>
@@ -186,7 +186,7 @@ function renderInvestigadorLink($nombre, $data) {
                             <p class="text-gray-500 mt-2">Investigadores que participan en este proyecto.</p>
                         </div>
 
-                        <div class="grid md:grid-cols-2 gap-6">
+                        <div class="grid md:grid-cols-2 gap-6 items-start">
                             <?php if(!empty($pro['responsable'])): ?>
                             <!-- Responsable -->
                             <div class="bg-white rounded-xl p-4 shadow-sm border border-blue-200">
@@ -214,13 +214,23 @@ function renderInvestigadorLink($nombre, $data) {
 
                             <?php if(count($internos) > 0): ?>
                             <!-- Colaboradores Internos -->
-                            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 md:col-span-<?= empty($pro['responsable']) ? '2' : '1' ?>">
+                            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                                 <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-3">Colaboradores Internos</p>
-                                <ul class="space-y-2 text-sm text-gray-700">
+                                <ul class="space-y-3">
                                     <?php foreach($internos as $inv): ?>
-                                    <li class="flex items-center space-x-2">
-                                        <i data-lucide="check-circle" class="w-4 h-4 text-green-500 flex-shrink-0"></i>
-                                        <span class="text-gray-700"><?= renderInvestigadorLink($inv, $investigadores_data) ?></span>
+                                    <li class="flex items-center space-x-3 group">
+                                        <div class="w-7 h-7 rounded-full overflow-hidden border border-gray-100 flex-shrink-0 bg-gray-50">
+                                            <?php if (isset($investigadores_data[$inv]) && !empty($investigadores_data[$inv]['imagen_perfil'])): ?>
+                                                <img src="<?= htmlspecialchars($investigadores_data[$inv]['imagen_perfil']) ?>" alt="Foto" class="w-full h-full object-cover">
+                                            <?php else: ?>
+                                                <div class="w-full h-full flex items-center justify-center">
+                                                    <i data-lucide="user" class="w-4 h-4 text-gray-400"></i>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <span class="text-sm text-gray-700 font-medium group-hover:text-blue-600 transition-colors">
+                                            <?= renderInvestigadorLink($inv, $investigadores_data) ?>
+                                        </span>
                                     </li>
                                     <?php endforeach; ?>
                                 </ul>
@@ -231,14 +241,24 @@ function renderInvestigadorLink($nombre, $data) {
                             <!-- Colaboradores Externos -->
                             <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 md:col-span-2">
                                 <p class="text-xs text-gray-500 font-semibold uppercase tracking-wide mb-3">Colaboradores Externos</p>
-                                <ul class="space-y-2 text-sm text-gray-700">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
                                     <?php foreach($externos as $inv): ?>
-                                    <li class="flex items-center space-x-2">
-                                        <i data-lucide="check-circle" class="w-4 h-4 text-teal-500 flex-shrink-0"></i>
-                                        <span class="text-gray-700"><?= renderInvestigadorLink($inv, $investigadores_data) ?></span>
-                                    </li>
+                                    <div class="flex items-center space-x-3 group">
+                                        <div class="w-7 h-7 rounded-full overflow-hidden border border-gray-100 flex-shrink-0 bg-gray-50">
+                                            <?php if (isset($investigadores_data[$inv]) && !empty($investigadores_data[$inv]['imagen_perfil'])): ?>
+                                                <img src="<?= htmlspecialchars($investigadores_data[$inv]['imagen_perfil']) ?>" alt="Foto" class="w-full h-full object-cover">
+                                            <?php else: ?>
+                                                <div class="w-full h-full flex items-center justify-center">
+                                                    <i data-lucide="user" class="w-4 h-4 text-gray-400"></i>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <span class="text-sm text-gray-700 font-medium group-hover:text-blue-600 transition-colors">
+                                            <?= renderInvestigadorLink($inv, $investigadores_data) ?>
+                                        </span>
+                                    </div>
                                     <?php endforeach; ?>
-                                </ul>
+                                </div>
                             </div>
                             <?php endif; ?>
                         </div>

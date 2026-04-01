@@ -30,6 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $filename = 'hero_bg_' . time() . '.' . $ext;
             $destino  = './img/' . $filename;
             if (move_uploaded_file($_FILES['hero_imagen']['tmp_name'], $destino)) {
+                // Borrar anterior si existe
+                if ($imagen_actual && file_exists($imagen_actual) && !str_contains($imagen_actual, 'default')) {
+                    @unlink($imagen_actual);
+                }
                 $new_imagen = $destino;
             } else {
                 $mensaje = 'Error al subir la imagen de fondo.';
@@ -45,6 +49,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $filename = 'logo_color_' . time() . '.' . $ext;
             $destino  = './img/' . $filename;
             if (move_uploaded_file($_FILES['site_logo']['tmp_name'], $destino)) {
+                // Borrar anterior si existe
+                if ($logo_actual && file_exists($logo_actual) && !str_contains($logo_actual, 'logo.png')) {
+                    @unlink($logo_actual);
+                }
                 $new_logo = $destino;
             } else {
                 $mensaje = 'Error al subir el logo principal.';
@@ -60,6 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $filename = 'logo_plata_' . time() . '.' . $ext;
             $destino  = './img/' . $filename;
             if (move_uploaded_file($_FILES['hero_logo_plata']['tmp_name'], $destino)) {
+                // Borrar anterior si existe
+                if ($logo_plata_actual && file_exists($logo_plata_actual) && !str_contains($logo_plata_actual, 'LogoPlata.png')) {
+                    @unlink($logo_plata_actual);
+                }
                 $new_logo_plata = $destino;
             } else {
                 $mensaje = 'Error al subir el logo plata.';
@@ -70,12 +82,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($mensaje)) {
         $stmt = $pdo->prepare("INSERT INTO site_config (clave, valor) VALUES (?, ?) ON DUPLICATE KEY UPDATE valor = VALUES(valor)");
-        $stmt->execute(['hero_badge',       $new_badge]);
-        $stmt->execute(['hero_titulo',      $new_titulo]);
-        $stmt->execute(['hero_descripcion', $new_descripcion]);
-        $stmt->execute(['hero_imagen',      $new_imagen]);
-        $stmt->execute(['site_logo',        $new_logo]);
-        $stmt->execute(['hero_logo_plata',  $new_logo_plata]);
+        $stmt->execute(['hero_badge',       trim($new_badge)]);
+        $stmt->execute(['hero_titulo',      trim($new_titulo)]);
+        $stmt->execute(['hero_descripcion', trim($new_descripcion)]);
+        $stmt->execute(['hero_imagen',      trim($new_imagen)]);
+        $stmt->execute(['site_logo',        trim($new_logo)]);
+        $stmt->execute(['hero_logo_plata',  trim($new_logo_plata)]);
 
         // Actualizar variables locales para la vista
         $badge       = $new_badge;
@@ -126,16 +138,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Logotipo Principal (Color)</label>
-                            <p class="text-xs text-gray-400 mb-3">Se usa en fondo blanco y páginas secundarias.</p>
-                            <div class="p-4 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-200 mb-2">
-                                <img src="<?= htmlspecialchars($logo_actual) ?>" alt="Logo color" class="h-12 w-auto object-contain">
-                            </div>
+                            <p class="text-xs text-gray-400">Se usa en fondo blanco y páginas secundarias. Solo .JPG o .PNG</p>
                         </div>
                         <div>
-                            <div id="logo-drop" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-indigo-400 transition-colors">
-                                <i data-lucide="upload" class="w-6 h-6 mx-auto text-gray-400 mb-1"></i>
-                                <p id="logo-filename" class="text-xs text-gray-500">Haz clic o arrastra el logo color</p>
-                                <input type="file" name="site_logo" id="logo-img-input" accept="image/*" class="hidden">
+                            <div id="logo-drop" class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-indigo-400 transition-all flex flex-col items-center justify-center min-h-[120px] bg-gray-50/30 overflow-hidden relative group">
+                                <!-- Placeholder (Solo se ve si no hay logo o se quita) -->
+                                <div id="logo-placeholder" class="<?= $logo_actual ? 'hidden' : '' ?> flex flex-col items-center">
+                                    <i data-lucide="image-plus" class="w-8 h-8 text-gray-300 mb-2"></i>
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Seleccionar Logo Color</p>
+                                </div>
+                                <!-- Preview Image -->
+                                <img src="<?= htmlspecialchars($logo_actual) ?>" id="logo-preview" alt="Logo color" class="<?= $logo_actual ? '' : 'hidden' ?> max-h-20 w-auto object-contain transition-all group-hover:scale-105">
+                                <input type="file" name="site_logo" id="logo-img-input" accept=".jpg,.jpeg,.png" class="hidden">
                             </div>
                         </div>
                     </div>
@@ -146,16 +160,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-1">Logotipo Hero (Blanco/Plata)</label>
-                            <p class="text-xs text-gray-400 mb-3">Se usa sobre el fondo del hero (transparente).</p>
-                            <div class="p-4 rounded-lg bg-gray-800 flex items-center justify-center border border-gray-700 mb-2">
-                                <img src="<?= htmlspecialchars($logo_plata_actual) ?>" alt="Logo plata" class="h-12 w-auto object-contain">
-                            </div>
+                            <p class="text-xs text-gray-400">Se usa sobre el fondo del hero (transparente). Solo .JPG o .PNG</p>
                         </div>
                         <div>
-                            <div id="logo-plata-drop" class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-blue-400 transition-colors">
-                                <i data-lucide="upload" class="w-6 h-6 mx-auto text-gray-400 mb-1"></i>
-                                <p id="logo-plata-filename" class="text-xs text-gray-500">Haz clic o arrastra el logo plata</p>
-                                <input type="file" name="hero_logo_plata" id="logo-plata-img-input" accept="image/*" class="hidden">
+                            <div id="logo-plata-drop" class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-blue-400 transition-all flex flex-col items-center justify-center min-h-[120px] bg-gray-800 overflow-hidden relative group">
+                                <!-- Placeholder -->
+                                <div id="logo-plata-placeholder" class="<?= $logo_plata_actual ? 'hidden' : '' ?> flex flex-col items-center">
+                                    <i data-lucide="image-plus" class="w-8 h-8 text-gray-600 mb-2"></i>
+                                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Seleccionar Logo Plata</p>
+                                </div>
+                                <!-- Preview Image -->
+                                <img src="<?= htmlspecialchars($logo_plata_actual) ?>" id="logo-plata-preview" alt="Logo plata" class="<?= $logo_plata_actual ? '' : 'hidden' ?> max-h-20 w-auto object-contain transition-all group-hover:scale-105">
+                                <input type="file" name="hero_logo_plata" id="logo-plata-img-input" accept=".jpg,.jpeg,.png" class="hidden">
                             </div>
                         </div>
                     </div>
@@ -218,12 +234,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php endif; ?>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Subir nueva imagen</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Subir nueva imagen (.JPG, .JPEG o .PNG)</label>
                         <p class="text-xs text-gray-400 mb-3">Se recomienda 1920×1080px (JPG/PNG).</p>
                         <div id="hero-drop" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-purple-400 transition-colors">
                             <i data-lucide="upload-cloud" class="w-8 h-8 mx-auto text-gray-400 mb-2"></i>
                             <p id="hero-filename" class="text-sm text-gray-500">Haz clic o arrastra la foto</p>
-                            <input type="file" name="hero_imagen" id="hero-img-input" accept="image/*" class="hidden">
+                            <input type="file" name="hero_imagen" id="hero-img-input" accept=".jpg,.jpeg,.png" class="hidden">
                         </div>
                     </div>
                 </div>
@@ -290,36 +306,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <script>
 (function(){
-    function setupDropzone(dropId, inputId, labelId) {
+    function setupDropzone(dropId, inputId, placeholderId, imgId) {
         const drop = document.getElementById(dropId);
         const input = document.getElementById(inputId);
-        const label = document.getElementById(labelId);
+        const placeholder = document.getElementById(placeholderId);
+        const img = document.getElementById(imgId);
+
+        if (!drop || !input) return;
 
         drop.addEventListener('click', () => input.click());
         input.addEventListener('change', function() {
             if (this.files[0]) {
-                label.textContent = this.files[0].name;
-                label.classList.add('text-blue-600', 'font-medium');
-
-                // Preview
                 const reader = new FileReader();
                 reader.onload = e => {
-                    const prev = drop.querySelector('img');
-                    if (prev) prev.remove();
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'w-full h-24 object-contain rounded mt-2';
-                    if (dropId === 'hero-drop') img.className = 'w-full h-32 object-cover rounded mt-2';
-                    drop.appendChild(img);
+                    if (img) {
+                        img.src = e.target.result;
+                        img.classList.remove('hidden');
+                    }
+                    if (placeholder) {
+                        placeholder.classList.add('hidden');
+                    }
                 };
                 reader.readAsDataURL(this.files[0]);
             }
         });
-        drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('border-blue-400'); });
-        drop.addEventListener('dragleave', () => drop.classList.remove('border-blue-400'));
+
+        // Dropzone effects
+        drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('border-blue-400', 'bg-blue-50/30'); });
+        drop.addEventListener('dragleave', () => drop.classList.remove('border-blue-400', 'bg-blue-50/30'));
         drop.addEventListener('drop', e => {
             e.preventDefault();
-            drop.classList.remove('border-blue-400');
+            drop.classList.remove('border-blue-400', 'bg-blue-50/30');
             const file = e.dataTransfer.files[0];
             if (file) {
                 const dt = new DataTransfer();
@@ -330,9 +347,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
     }
 
-    setupDropzone('hero-drop', 'hero-img-input', 'hero-filename');
-    setupDropzone('logo-drop', 'logo-img-input', 'logo-filename');
-    setupDropzone('logo-plata-drop', 'logo-plata-img-input', 'logo-plata-filename');
+    // El hero-drop sigue usando el sistema anterior (se añade el img dinámicamente) porque no tiene img previa fija en el HTML
+    // Pero lo ajustaremos para que sea consistente si es necesario.
+    // De momento, los logos institucional según lo pedido:
+    setupDropzone('logo-drop', 'logo-img-input', 'logo-placeholder', 'logo-preview');
+    setupDropzone('logo-plata-drop', 'logo-plata-img-input', 'logo-plata-placeholder', 'logo-plata-preview');
 })();
 </script>
 

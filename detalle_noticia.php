@@ -27,6 +27,8 @@ $galeria = json_decode($not['galeria'] ?? '[]', true);
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <title><?= htmlspecialchars($not['titulo']) ?> | CIEEPE</title>
 </head>
 
@@ -35,7 +37,7 @@ $galeria = json_decode($not['galeria'] ?? '[]', true);
     <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 py-2 bg-white text-blue-900 shadow-md">
         <div class="container mx-auto px-4 md:px-8 flex justify-between items-center">
             <a href="index.html#inicio" id="nav-logo" class="flex items-center">
-                <img src="./img/logo.png" alt="CIEEPE ENEES Logo" class="h-12 w-auto md:h-14">
+                <img src="<?= htmlspecialchars($site_logo) ?>" alt="CIEEPE ENEES Logo" class="h-12 w-auto md:h-14">
             </a>
             <div class="hidden md:flex space-x-6 lg:space-x-8">
                 <a href="index.html#inicio" class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Inicio</a>
@@ -89,27 +91,73 @@ $galeria = json_decode($not['galeria'] ?? '[]', true);
             <div class="max-w-4xl mx-auto">
                 <!-- Contenido -->
                 <article class="prose prose-lg max-w-none text-gray-700 mb-16">
-                    <div class="bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-gray-100 italic leading-loose text-lg">
+                    <div class="bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-gray-100 <?= ($not['es_cursiva'] ?? 0) == 1 ? 'italic' : '' ?> leading-loose text-lg">
                         <?= nl2br(htmlspecialchars($not['descripcion_larga'])) ?>
                     </div>
                 </article>
 
-                <!-- Galería -->
+                <!-- Galería Modernizada -->
                 <?php if(!empty($galeria)): ?>
                 <section class="mt-20">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-8 flex items-center">
-                        <i data-lucide="images" class="w-6 h-6 mr-3 text-blue-600"></i> Galería de la Noticia
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <?php foreach($galeria as $img): ?>
-                        <div class="group relative overflow-hidden rounded-2xl shadow-md aspect-video">
-                            <img src="<?= htmlspecialchars($img) ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                    <div class="flex items-center justify-between mb-8">
+                        <h3 class="text-2xl font-bold text-gray-900 border-l-4 border-blue-600 pl-4">Galería de Imágenes</h3>
+                    </div>
+                    
+                    <div class="relative group">
+                        <!-- Contenedor Swiper -->
+                        <div class="swiper main-gallery rounded-2xl shadow-xl border border-gray-100 overflow-hidden aspect-video bg-gray-100">
+                            <div class="swiper-wrapper">
+                                <?php foreach($galeria as $index => $img): ?>
+                                <div class="swiper-slide cursor-pointer group/slide" onclick="openLightbox(<?= $index ?>)">
+                                    <img src="<?= htmlspecialchars($img) ?>" class="w-full h-full object-cover group-hover/slide:scale-105 transition-transform duration-500">
+                                    <div class="absolute inset-0 bg-black/10 opacity-0 group-hover/slide:opacity-100 transition-opacity flex items-center justify-center">
+                                        <div class="bg-white/20 backdrop-blur-sm p-4 rounded-full">
+                                            <i data-lucide="maximize-2" class="w-8 h-8 text-white"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                            
+                            <?php if(count($galeria) > 1): ?>
+                            <!-- Navegación -->
+                            <div class="swiper-button-next !text-white after:!text-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div class="swiper-button-prev !text-white after:!text-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div class="swiper-pagination !bottom-4"></div>
+                            <?php endif; ?>
                         </div>
-                        <?php endforeach; ?>
                     </div>
                 </section>
                 <?php endif; ?>
+
+                <!-- Lightbox / Modal de Imagen -->
+                <div id="lightbox" onclick="if(event.target === this) closeLightbox()" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl hidden flex-col items-center justify-center p-4 animate-in fade-in duration-300 cursor-pointer">
+                    <button onclick="closeLightbox()" class="absolute top-6 right-6 text-white/70 hover:text-white transition-colors z-[60]">
+                        <i data-lucide="x" class="w-10 h-10"></i>
+                    </button>
+                    
+                    <div class="relative max-w-6xl w-full flex items-center justify-center">
+                        <!-- Badge con Título en Lightbox -->
+                        <div class="absolute top-4 left-4 z-[60] bg-blue-900/80 backdrop-blur-md text-white px-4 py-2 rounded-lg text-xs md:text-sm font-bold shadow-lg border border-blue-400/30 max-w-[70%] truncate">
+                            <?= htmlspecialchars($not['titulo']) ?>
+                        </div>
+
+                        <img id="lightbox-img" src="" class="max-h-[85vh] w-auto rounded-lg shadow-2xl object-contain animate-in zoom-in duration-300">
+                        
+                        <div class="absolute bottom-4 right-4 text-white/50 text-[10px] md:text-xs font-medium bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-sm" id="lightbox-counter">
+                            Imagen 1 de 1
+                        </div>
+
+                        <?php if(count($galeria) > 1): ?>
+                        <button onclick="changeLightboxImg(-1)" class="absolute left-0 -translate-x-12 md:translate-x-0 p-3 text-white/60 hover:text-white transition-colors">
+                            <i data-lucide="chevron-left" class="w-12 h-12"></i>
+                        </button>
+                        <button onclick="changeLightboxImg(1)" class="absolute right-0 translate-x-12 md:translate-x-0 p-3 text-white/60 hover:text-white transition-colors">
+                            <i data-lucide="chevron-right" class="w-12 h-12"></i>
+                        </button>
+                        <?php endif; ?>
+                    </div>
+                </div>
                 
                 <!-- Navegación inferior -->
                 <div class="mt-20 pt-8 border-t border-gray-200 flex justify-between items-center">
@@ -180,8 +228,56 @@ $galeria = json_decode($not['galeria'] ?? '[]', true);
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script>
         lucide.createIcons();
+
+        // Inicializar Swiper
+        const swiper = new Swiper('.main-gallery', {
+            loop: <?= count($galeria) > 1 ? 'true' : 'false' ?>,
+            pagination: { el: '.swiper-pagination', clickable: true },
+            navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+            autoplay: { delay: 4000, disableOnInteraction: true },
+        });
+
+        // Lógica de Lightbox
+        const gallery = <?= json_encode($galeria) ?>;
+        let currentIndex = 0;
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxCounter = document.getElementById('lightbox-counter');
+
+        function openLightbox(index) {
+            currentIndex = index;
+            updateLightbox();
+            lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        function updateLightbox() {
+            lightboxImg.src = gallery[currentIndex];
+            lightboxCounter.textContent = `Imagen ${currentIndex + 1} de ${gallery.length}`;
+        }
+
+        function changeLightboxImg(dir) {
+            currentIndex = (currentIndex + dir + gallery.length) % gallery.length;
+            updateLightbox();
+        }
+
+        // Teclado
+        document.addEventListener('keydown', (e) => {
+            if (lightbox.classList.contains('hidden')) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowRight') changeLightboxImg(1);
+            if (e.key === 'ArrowLeft') changeLightboxImg(-1);
+        });
     </script>
 </body>
 </html>

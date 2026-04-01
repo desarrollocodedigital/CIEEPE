@@ -169,6 +169,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Contenido Detallado</label>
                     <textarea name="descripcion_larga" rows="12"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"><?= htmlspecialchars($not['descripcion_larga']) ?></textarea>
+                    
+                    <div class="mt-3 flex items-center">
+                        <label class="inline-flex items-center cursor-pointer group">
+                             <input type="checkbox" name="es_cursiva" class="sr-only peer" <?= ($not['es_cursiva'] ?? 0) == 1 ? 'checked' : '' ?>>
+                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 relative"></div>
+                             <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors">Activar Estilo Cursivo</span>
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -194,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     <?php endforeach; ?>
                 </div>
 
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Añadir más fotos</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Añadir más fotos (.JPG, .JPEG o .PNG)</label>
                 <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-amber-400 transition-colors bg-gray-50 group">
                     <div class="space-y-1 text-center">
                         <i data-lucide="upload-cloud" class="mx-auto h-12 w-12 text-gray-400 group-hover:text-amber-500 transition-colors"></i>
@@ -204,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                 <input name="nueva_galeria[]" type="file" class="sr-only" accept=".jpg,.jpeg,.png" multiple onchange="previewGallery(this)">
                             </label>
                         </div>
-                        <p class="text-xs text-gray-500 font-medium">Puedes elegir varias fotos manteniendo presionado Ctrl o Shift</p>
+                        <p class="text-xs text-gray-500 font-medium">Puedes elegir varias fotos (.JPG, .JPEG o .PNG)</p>
                         <div id="gallery-counter" class="hidden mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
                              0 nuevas fotos seleccionadas
                         </div>
@@ -225,8 +233,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 <div class="aspect-video w-full rounded-lg bg-gray-100 border border-gray-200 overflow-hidden relative group mb-4">
                     <img id="main-preview" src="<?= htmlspecialchars($not['imagen_portada']) ?>" class="w-full h-full object-cover">
                     <label class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                        <span class="text-white text-sm font-medium">Reemplazar Portada</span>
-                        <input type="file" name="imagen_portada" class="hidden" accept="image/*" onchange="previewMain(this)">
+                        <span class="text-white text-sm font-medium">Reemplazar Portada (.JPG, .PEG, .PNG)</span>
+                        <input type="file" name="imagen_portada" class="hidden" accept=".jpg,.jpeg,.png" onchange="previewMain(this)">
                     </label>
                 </div>
             </div>

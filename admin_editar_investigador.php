@@ -1,5 +1,8 @@
 <?php
 // admin_investigador_editar.php
+?>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<?php
 
 $id = (int)($_GET['id'] ?? 0);
 if ($id === 0) {
@@ -43,16 +46,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     // 1. Manejo Subida de Imagen
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
         $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
-        if (in_array($ext, ['jpg', 'png'])) {
+        if (in_array($ext, ['jpg', 'jpeg', 'png'])) {
             $nuevo_nombre = uniqid('foto_') . '.' . $ext;
             $ruta_img = $img_dir . $nuevo_nombre;
             if (move_uploaded_file($_FILES['foto']['tmp_name'], $ruta_img)) {
+                // Borrar foto anterior si no es placeholder
+                $old_img = trim($_POST['imagen_actual'] ?? '');
+                if ($old_img && !str_contains($old_img, 'placeholder') && file_exists($old_img)) {
+                    unlink($old_img);
+                }
                 $imagen_perfil = $ruta_img;
             } else {
                 $error .= "Error guardar imagen en servidor. ";
             }
         } else {
-             $error .= "Formato de imagen inválido. Solo se permite .jpg o .png. ";
+             $error .= "Formato de imagen inválido. Solo se permite .jpg, .jpeg o .png. ";
         }
     }
 
@@ -63,6 +71,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $nuevo_nombre = uniqid('cv_') . '.pdf';
             $ruta_cv = $cv_dir . $nuevo_nombre;
             if (move_uploaded_file($_FILES['cv']['tmp_name'], $ruta_cv)) {
+                // Borrar CV anterior si existía
+                $old_cv = trim($_POST['cv_actual'] ?? '');
+                if ($old_cv && $old_cv !== '#' && file_exists($old_cv)) {
+                    unlink($old_cv);
+                }
                 $cv_url = $ruta_cv;
             } else {
                 $error .= "Error guardar CV. ";
@@ -120,6 +133,27 @@ if (isset($_GET['del_line'])) {
     echo "<script>window.history.replaceState(null, null, 'admin.php?modulo=editar_investigador&id=$id');</script>";
 }
 
+// ---> ACCIÓN: REORDENAR LÍNEAS (AJAX)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'reorder_lines') {
+    $new_order = $_POST['order'] ?? []; // Array de IDs en el nuevo orden
+    if (!empty($new_order)) {
+        $pdo->beginTransaction();
+        try {
+            foreach ($new_order as $idx => $line_id) {
+                $orden = $idx + 1;
+                $stmt = $pdo->prepare("UPDATE investigador_lineas SET orden = ? WHERE id = ? AND investigador_id = ?");
+                $stmt->execute([$orden, (int)$line_id, $id]);
+            }
+            $pdo->commit();
+            echo json_encode(['status' => 'success', 'message' => 'Orden actualizado']);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+    }
+    exit; // Importante: detener ejecución para respuestas AJAX
+}
+
 // ---> ACCIÓN: AÑADIR PUBLICACIÓN
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_pub') {
     $titulo_pub = trim($_POST['titulo_pub']);
@@ -157,6 +191,27 @@ if (isset($_GET['del_pub'])) {
     $pdo->prepare("DELETE FROM investigador_publicaciones WHERE id = ? AND investigador_id = ?")->execute([$pub_id, $id]);
     $mensaje = 'Publicación eliminada correctamente.';
     echo "<script>window.history.replaceState(null, null, 'admin.php?modulo=editar_investigador&id=$id');</script>";
+}
+
+// ---> ACCIÓN: REORDENAR PUBLICACIONES (AJAX)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'reorder_pubs') {
+    $new_order = $_POST['order'] ?? []; 
+    if (!empty($new_order)) {
+        $pdo->beginTransaction();
+        try {
+            foreach ($new_order as $idx => $pub_id) {
+                $orden = $idx + 1;
+                $stmt = $pdo->prepare("UPDATE investigador_publicaciones SET orden = ? WHERE id = ? AND investigador_id = ?");
+                $stmt->execute([$orden, (int)$pub_id, $id]);
+            }
+            $pdo->commit();
+            echo json_encode(['status' => 'success', 'message' => 'Orden de publicaciones actualizado']);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+    }
+    exit;
 }
 
 
@@ -367,7 +422,7 @@ $lista_lineas = $pdo->query("SELECT titulo FROM lineas_investigacion ORDER BY ti
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <!-- Foto -->
                         <div>
-                            <label class="block text-xs font-bold text-blue-800 uppercase tracking-wide mb-3">Reemplazar Foto (.JPG o .PNG solamente)</label>
+                            <label class="block text-xs font-bold text-blue-800 uppercase tracking-wide mb-3">Reemplazar Foto (.JPG, .JPEG o .PNG solamente)</label>
                             <div class="flex items-center space-x-4">
                                 <img src="<?= htmlspecialchars($inv['imagen_perfil']) ?>" class="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm bg-white" alt="Actual">
                                 <input type="file" name="foto" accept=".jpg,.jpeg,.png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
@@ -376,7 +431,7 @@ $lista_lineas = $pdo->query("SELECT titulo FROM lineas_investigacion ORDER BY ti
 
                         <!-- CV -->
                         <div>
-                            <label class="block text-xs font-bold text-blue-800 uppercase tracking-wide mb-3">Reemplazar Currículum (PDF)</label>
+                            <label class="block text-xs font-bold text-blue-800 uppercase tracking-wide mb-3">Reemplazar Currículum (.PDF solamente)</label>
                             <div class="flex items-center">
                                 <?php if($inv['cv_url'] && $inv['cv_url'] !== '#'): ?>
                                     <a href="<?= htmlspecialchars($inv['cv_url']) ?>" target="_blank" class="mr-4 text-red-500 hover:text-red-700" title="Ver CV actual"><i data-lucide="file-text" class="w-8 h-8"></i></a>
@@ -420,20 +475,20 @@ $lista_lineas = $pdo->query("SELECT titulo FROM lineas_investigacion ORDER BY ti
     <!-- COLUMNA DERECHA: Sub-módulo de Líneas de Investigación -->
     <div class="xl:col-span-1 space-y-6">
         
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-purple-50 flex items-center justify-between">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 relative">
+            <div class="px-6 py-4 border-b border-gray-100 bg-purple-50 flex items-center justify-between rounded-t-xl">
                 <div class="flex items-center">
                     <i data-lucide="network" class="w-5 h-5 mr-2 text-purple-600"></i>
                     <h3 class="font-bold text-gray-800">Especialidad de investigación (<?= count($lineas) ?>)</h3>
                 </div>
             </div>
             
-            <div class="p-4 space-y-4">
+            <div class="p-4 space-y-4" id="sortable-specialties">
                 <?php if(empty($lineas)): ?>
                     <p class="text-sm text-gray-500 text-center py-4">No tiene especialidades de investigación asociadas aún.</p>
                 <?php else: ?>
                     <?php foreach($lineas as $l): ?>
-                    <div class="bg-white border border-gray-200 rounded-lg p-4 group relative hover:border-purple-300 transition-colors">
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 group relative hover:border-purple-300 transition-colors cursor-default" data-id="<?= $l['id'] ?>">
                         <div class="absolute top-2 right-2 flex space-x-2">
                             <button onclick="toggleEditLine(<?= $l['id'] ?>)" class="text-gray-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <i data-lucide="edit-3" class="w-5 h-5"></i>
@@ -444,7 +499,9 @@ $lista_lineas = $pdo->query("SELECT titulo FROM lineas_investigacion ORDER BY ti
                         </div>
                         <div id="line-view-<?= $l['id'] ?>">
                             <div class="flex items-center mb-1">
-                                <span class="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center mr-2"><?= $l['orden'] ?></span>
+                                <div class="drag-handle cursor-grab active:cursor-grabbing p-1 mr-2 text-gray-300 hover:text-purple-600 transition-colors">
+                                    <i data-lucide="grip-vertical" class="w-4 h-4"></i>
+                                </div>
                                 <h4 class="font-bold text-gray-900 text-sm pr-12"><?= htmlspecialchars($l['titulo']) ?></h4>
                             </div>
                             <p class="text-xs text-gray-500 pl-8"><?= htmlspecialchars($l['descripcion']) ?></p>
@@ -455,8 +512,8 @@ $lista_lineas = $pdo->query("SELECT titulo FROM lineas_investigacion ORDER BY ti
                                 <input type="hidden" name="line_id" value="<?= $l['id'] ?>">
                                 <input type="text" name="titulo_linea" value="<?= htmlspecialchars($l['titulo']) ?>" class="w-full text-xs border rounded p-1 font-bold">
                                 <textarea name="desc_linea" class="w-full text-xs border rounded p-1" rows="2"><?= htmlspecialchars($l['descripcion']) ?></textarea>
+                                <input type="hidden" name="orden_linea" value="<?= $l['orden'] ?>">
                                 <div class="flex items-center space-x-2">
-                                    <input type="number" name="orden_linea" value="<?= $l['orden'] ?>" class="w-12 text-xs border rounded p-1 text-center">
                                     <button type="submit" class="bg-blue-600 text-white text-[10px] px-2 py-1 rounded">Guardar</button>
                                     <button type="button" onclick="toggleEditLine(<?= $l['id'] ?>)" class="bg-gray-200 text-gray-600 text-[10px] px-2 py-1 rounded">Cancelar</button>
                                 </div>
@@ -471,33 +528,37 @@ $lista_lineas = $pdo->query("SELECT titulo FROM lineas_investigacion ORDER BY ti
             <div class="border-t border-gray-100 bg-gray-50">
                 
             <!-- Gestión Única de Líneas -->
-            <div class="border-t border-gray-100 bg-gray-50 p-4">
+            <div class="border-t border-gray-100 bg-gray-50 p-4 rounded-b-xl">
                 <form method="POST" class="space-y-4">
                     <input type="hidden" name="action" value="manage_line">
                     
                     <div class="flex items-center justify-between mb-2">
                         <h4 class="text-xs font-bold text-gray-600 uppercase flex items-center"><i data-lucide="plus-circle" class="w-3 h-3 mr-1"></i> Vincular Especialidad de investigación</h4>
                         <label class="inline-flex items-center cursor-pointer group">
-                            <input type="checkbox" name="is_new_line" id="toggle-new-line" onchange="toggleNewLineForm()" class="sr-only">
+                            <input type="checkbox" name="is_new_line" id="toggle-new-line" onchange="toggleNewLineForm()" class="sr-only peer">
                             <div class="w-7 h-4 bg-gray-200 rounded-full peer-checked:bg-purple-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-3 relative"></div>
                             <span class="ml-2 text-[10px] font-bold text-gray-500 uppercase group-hover:text-purple-600 transition-colors">Nueva Especialidad</span>
                         </label>
                     </div>
 
-                    <!-- Selector Existente -->
-                    <div id="section-existing">
+                    <!-- Selector Existente Transformado a Buscador Inteligente Premium -->
+                    <div id="section-existing" class="relative group">
                         <?php 
-                            $lineasCatalogo = $pdo->query("SELECT titulo FROM lineas_investigacion UNION SELECT titulo FROM investigador_lineas ORDER BY titulo ASC")->fetchAll();
+                            $lineasCatalogo = $pdo->query("SELECT titulo FROM lineas_investigacion UNION SELECT titulo FROM investigador_lineas ORDER BY titulo ASC")->fetchAll(PDO::FETCH_ASSOC);
                         ?>
                         <div class="relative">
-                            <select name="titulo_maestro" class="w-full rounded-lg border-gray-300 border focus:border-blue-500 focus:ring-blue-500 p-2.5 pr-10 outline-none text-sm shadow-sm bg-gray-50 focus:bg-white transition-colors appearance-none">
-                                <option value="">Selecione una Especialidad de investigación</option>
-                                <?php foreach($lineasCatalogo as $lc): ?>
-                                <option value="<?= htmlspecialchars($lc['titulo']) ?>"><?= htmlspecialchars($lc['titulo']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
-                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            <input type="text" id="smart-search-input" name="titulo_maestro" autocomplete="off" placeholder="Escribe para buscar especialidad..." 
+                                class="w-full rounded-xl border-gray-200 border bg-gray-50 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 p-3.5 outline-none text-sm shadow-sm transition-all pr-12 font-medium">
+                            
+                            <div class="absolute inset-y-0 right-0 flex items-center px-4 text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                                <i data-lucide="search" class="w-5 h-5"></i>
+                            </div>
+
+                            <!-- Dropdown de Resultados Premium -->
+                            <div id="smart-results-container" class="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[100] hidden max-h-64 overflow-y-auto animate-in fade-in zoom-in-95 duration-200 custom-scroll">
+                                <div class="p-2 space-y-1" id="smart-results-list">
+                                    <!-- Opciones inyectadas por JS -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -514,7 +575,7 @@ $lista_lineas = $pdo->query("SELECT titulo FROM lineas_investigacion ORDER BY ti
 
                     <div class="flex items-center space-x-2 pt-2">
                         <div class="flex-1 text-[10px] text-gray-400 font-medium italic" id="hint-text">Elige una Especialidad existente de la lista o activa el switch para crear una nueva.</div>
-                        <input type="number" name="orden_linea" value="<?= count($lineas)+1 ?>" required class="w-14 rounded-lg border-gray-300 border focus:border-blue-500 focus:ring-blue-500 p-2 text-center outline-none text-sm shadow-sm bg-gray-50 focus:bg-white transition-colors" min="1" max="99">
+                        <input type="hidden" name="orden_linea" value="<?= count($lineas)+1 ?>">
                         <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-transform active:scale-95 shadow-sm">Agregar</button>
                     </div>
                 </form>
@@ -532,12 +593,12 @@ $lista_lineas = $pdo->query("SELECT titulo FROM lineas_investigacion ORDER BY ti
                 </div>
             </div>
             
-            <div class="p-4 space-y-4">
+            <div class="p-4 space-y-4" id="sortable-publications">
                 <?php if(empty($publicaciones)): ?>
                     <p class="text-sm text-gray-500 text-center py-4">No tiene publicaciones destacadas asociadas aún.</p>
                 <?php else: ?>
                     <?php foreach($publicaciones as $p): ?>
-                    <div class="bg-white border border-gray-200 rounded-lg p-4 group relative hover:border-amber-300 transition-colors">
+                    <div class="bg-white border border-gray-200 rounded-lg p-4 group relative hover:border-amber-300 transition-colors cursor-default" data-id="<?= $p['id'] ?>">
                         <div class="absolute top-2 right-2 flex space-x-2">
                             <button onclick="toggleEditPub(<?= $p['id'] ?>)" class="text-gray-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <i data-lucide="edit-3" class="w-5 h-5"></i>
@@ -548,7 +609,9 @@ $lista_lineas = $pdo->query("SELECT titulo FROM lineas_investigacion ORDER BY ti
                         </div>
                         <div id="pub-view-<?= $p['id'] ?>">
                             <div class="flex items-start mb-1">
-                                <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold flex items-center justify-center mr-2 flex-shrink-0 mt-0.5"><?= $p['orden'] ?></span>
+                                <div class="drag-handle cursor-grab active:cursor-grabbing p-1 mr-2 text-gray-300 hover:text-amber-600 transition-colors mt-0.5">
+                                    <i data-lucide="grip-vertical" class="w-4 h-4"></i>
+                                </div>
                                 <div class="pr-12">
                                     <h4 class="font-bold text-gray-900 text-sm leading-tight mb-1"><?= htmlspecialchars($p['titulo']) ?></h4>
                                     <?php if(!empty($p['subtitulo'])): ?>
@@ -576,10 +639,7 @@ $lista_lineas = $pdo->query("SELECT titulo FROM lineas_investigacion ORDER BY ti
                                         <label class="block text-[10px] font-bold text-gray-400 uppercase">Enlace (Opcional)</label>
                                         <input type="text" name="enlace_pub" value="<?= htmlspecialchars($p['enlace']) ?>" placeholder="URL" class="w-full text-xs border rounded p-1.5 outline-none focus:border-amber-500">
                                     </div>
-                                    <div class="w-16">
-                                        <label class="block text-[10px] font-bold text-gray-400 uppercase">Orden</label>
-                                        <input type="number" name="orden_pub" value="<?= $p['orden'] ?>" class="w-full text-xs border rounded p-1.5 text-center outline-none focus:border-amber-500" min="1">
-                                    </div>
+                                    <input type="hidden" name="orden_pub" value="<?= $p['orden'] ?>">
                                 </div>
                                 <div class="flex space-x-2 mt-3 pt-2">
                                     <button type="submit" class="flex-1 bg-amber-600 text-white text-[10px] px-2 py-1.5 rounded font-bold hover:bg-amber-700">Guardar</button>
@@ -602,10 +662,9 @@ $lista_lineas = $pdo->query("SELECT titulo FROM lineas_investigacion ORDER BY ti
                     <input type="text" name="enlace_pub" placeholder="Enlace URL (Opcional)" class="w-full rounded border-gray-300 border focus:border-amber-500 focus:ring-amber-500 p-2 outline-none text-xs shadow-sm">
                     
                     <div class="flex items-center space-x-2 pt-2">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase">Orden:</span>
-                        <input type="number" name="orden_pub" value="<?= count($publicaciones)+1 ?>" class="w-16 rounded border-gray-300 border focus:border-amber-500 focus:ring-amber-500 p-1.5 text-center outline-none text-xs shadow-sm bg-gray-50">
+                        <input type="hidden" name="orden_pub" value="<?= count($publicaciones)+1 ?>">
                         <div class="flex-1 text-right">
-                            <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-1.5 px-3 rounded shadow-sm transition-colors text-xs">Añadir</button>
+                            <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-transform active:scale-95 shadow-sm">Añadir</button>
                         </div>
                     </div>
                 </form>
@@ -656,5 +715,128 @@ function toggleEditPub(id) {
         view.classList.add('hidden');
         edit.classList.remove('hidden');
     }
+}
+
+// --- BUSCADOR INTELIGENTE PREMIUM ---
+const lineasData = <?= json_encode(array_column($lineasCatalogo, 'titulo')) ?>;
+const smartInput = document.getElementById('smart-search-input');
+const resultsContainer = document.getElementById('smart-results-container');
+const resultsList = document.getElementById('smart-results-list');
+
+if (smartInput) {
+    smartInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        resultsList.innerHTML = '';
+        
+        if (query.length < 1) {
+            resultsContainer.classList.add('hidden');
+            return;
+        }
+
+        // Filtrar y ordenar por relevancia
+        const filtered = lineasData
+            .filter(item => item.toLowerCase().includes(query))
+            .sort((a, b) => {
+                const aLow = a.toLowerCase();
+                const bLow = b.toLowerCase();
+                const aStarts = aLow.startsWith(query);
+                const bStarts = bLow.startsWith(query);
+                
+                if (aStarts && !bStarts) return -1;
+                if (!aStarts && bStarts) return 1;
+                return aLow.localeCompare(bLow); // Alfabético si ambos (o ninguno) empiezan igual
+            })
+            .slice(0, 12); // Limitar a los 12 mejores resultados para enfoque
+
+        if (filtered.length > 0) {
+            resultsContainer.classList.remove('hidden');
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'px-4 py-3 hover:bg-blue-50 hover:text-blue-700 rounded-xl cursor-pointer text-sm font-semibold text-gray-700 transition-all flex items-center group/item';
+                div.innerHTML = `
+                    <i data-lucide="hash" class="w-3.5 h-3.5 mr-2.5 text-gray-300 group-hover/item:text-blue-400"></i>
+                    ${item}
+                `;
+                div.onclick = () => {
+                    smartInput.value = item;
+                    resultsContainer.classList.add('hidden');
+                };
+                resultsList.appendChild(div);
+            });
+            lucide.createIcons();
+        } else {
+            resultsContainer.classList.add('hidden');
+        }
+    });
+
+    // Cerrar al hacer clic fuera
+    document.addEventListener('click', (e) => {
+        if (!smartInput.contains(e.target) && !resultsContainer.contains(e.target)) {
+            resultsContainer.classList.add('hidden');
+        }
+    });
+
+    smartInput.addEventListener('focus', () => {
+        if (smartInput.value.trim().length > 0) {
+            resultsContainer.classList.remove('hidden');
+        }
+    });
+}
+
+// --- REORDENAMIENTO SORTEABLE ---
+const sortableEl = document.getElementById('sortable-specialties');
+if (sortableEl) {
+    new Sortable(sortableEl, {
+        animation: 150,
+        handle: '.drag-handle',
+        ghostClass: 'bg-purple-50',
+        onEnd: function() {
+            const order = Array.from(sortableEl.children).map(el => el.getAttribute('data-id'));
+            const formData = new FormData();
+            formData.append('action', 'reorder_lines');
+            order.forEach(id => formData.append('order[]', id));
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Notificación discreta opcional
+                    console.log('Orden guardado');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    });
+}
+
+// --- REORDENAMIENTO PUBLICACIONES ---
+const sortablePubs = document.getElementById('sortable-publications');
+if (sortablePubs) {
+    new Sortable(sortablePubs, {
+        animation: 150,
+        handle: '.drag-handle',
+        ghostClass: 'bg-amber-50',
+        onEnd: function() {
+            const order = Array.from(sortablePubs.children).map(el => el.getAttribute('data-id'));
+            const formData = new FormData();
+            formData.append('action', 'reorder_pubs');
+            order.forEach(id => formData.append('order[]', id));
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log('Orden de publicaciones guardado');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    });
 }
 </script>

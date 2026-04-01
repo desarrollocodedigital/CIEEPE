@@ -71,6 +71,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         echo "<script>window.location.href='admin.php?modulo=editar_proyecto&id=$id_proyecto&status=obj_updated';</script>";
         exit;
     }
+    elseif ($_POST['action'] === 'reorder_objs') {
+        header('Content-Type: application/json');
+        try {
+            $ids = $_POST['order'] ?? [];
+            foreach ($ids as $index => $id) {
+                $stmt = $pdo->prepare("UPDATE proyecto_objetivos SET orden = ? WHERE id = ? AND proyecto_id = ?");
+                $stmt->execute([$index + 1, $id, $id_proyecto]);
+            }
+            echo json_encode(['status' => 'success']);
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
 }
 
 // Eliminar Objetivo
@@ -111,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // Subir Imagen
         if (isset($_FILES['imagen_portada']) && $_FILES['imagen_portada']['error'] == 0) {
-            $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+            $allowed = ['jpg', 'jpeg', 'png'];
             $filename = $_FILES['imagen_portada']['name'];
             $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
             if (in_array($ext, $allowed)) {
@@ -121,6 +135,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $new_name = uniqid('proyecto_') . '.' . $ext;
                 $dest = 'img/proyectos/' . $new_name;
                 if (move_uploaded_file($_FILES['imagen_portada']['tmp_name'], $dest)) {
+                    // Borrar anterior si existe y no es placeholder
+                    if ($pro['imagen_portada'] && !str_contains($pro['imagen_portada'], 'placeholder')) {
+                        $old_img = ltrim($pro['imagen_portada'], './');
+                        if (file_exists($old_img)) unlink($old_img);
+                    }
                     $imagen_portada = './' . $dest;
                 }
             } else {
@@ -134,6 +153,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $pdf_nombre = time() . '_' . preg_replace("/[^a-zA-Z0-9.-]/", "_", $_FILES['pdf_protocolo']['name']);
             $pdf_destino = 'docs/' . $pdf_nombre;
             if (move_uploaded_file($_FILES['pdf_protocolo']['tmp_name'], $pdf_destino)) {
+                // Borrar anterior si existe
+                if ($pro['pdf_protocolo'] && file_exists($pro['pdf_protocolo'])) {
+                    unlink($pro['pdf_protocolo']);
+                }
                 $pdf_protocolo = $pdf_destino;
             }
         }
@@ -250,17 +273,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                 <!-- Imagen Portada -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Imagen de Portada (Dejar vacío para conservar actual)</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Imagen de Portada (.JPG, .JPEG o .PNG - Dejar vacío para conservar actual)</label>
                     <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-blue-500 transition-colors bg-gray-50 group relative">
                         <div class="space-y-1 text-center">
                             <i data-lucide="image-plus" class="mx-auto h-12 w-12 text-gray-400 group-hover:text-blue-500 transition-colors"></i>
                             <div class="flex text-sm text-gray-600 justify-center">
                                 <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 px-2 py-1 shadow-sm border border-gray-200">
                                     <span>Cambiar imagen</span>
-                                    <input id="file-upload" name="imagen_portada" type="file" class="sr-only" accept="image/*" onchange="previewImage(this)">
+                                    <input id="file-upload" name="imagen_portada" type="file" class="sr-only" accept=".jpg,.jpeg,.png" onchange="previewImage(this)">
                                 </label>
                             </div>
-                            <p class="text-xs text-gray-500">PNG, JPG, WEBP hasta 2MB</p>
+                            <p class="text-xs text-gray-500">PNG, JPG o JPEG hasta 2MB</p>
                         </div>
                     </div>
                     <img id="img-preview" src="<?= htmlspecialchars($pro['imagen_portada']) ?>" alt="Vista previa" class="mt-4 h-32 w-auto object-cover rounded-lg border border-gray-200 shadow-sm">
@@ -404,7 +427,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Protocolo en PDF</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Protocolo en PDF (.PDF solamente)</label>
                             <?php if (!empty($pro['pdf_protocolo'])): ?>
                                 <p class="text-xs text-blue-600 mb-2 flex items-center">
                                     <i data-lucide="check-circle" class="w-4 h-4 mr-1"></i> Documento actual cargado. Sube otro para reemplazarlo.
@@ -420,17 +443,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             </div>
                         </div>
 
-                        <!-- Sección movida al fondo -->
-                        <div class="pt-4 border-t border-gray-100">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Objetivos Específicos (Tarjetas)</label>
-                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start">
-                                <i data-lucide="info" class="w-5 h-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0"></i>
-                                <div>
-                                    <p class="text-sm text-blue-800 font-medium text-[11px] uppercase tracking-wide">Gestión de Objetivos</p>
-                                    <p class="text-xs text-blue-600 mt-1">Los objetivos se administran ahora como tarjetas individuales interactivas. Dirígete a la sección <strong>"Metas y Objetivos Específicos"</strong> ubicada más abajo en esta misma página.</p>
-                                </div>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -488,10 +501,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <?php if(empty($objetivos)): ?>
                     <p class="text-sm text-gray-500 text-center py-4">No se han registrado objetivos específicos para este proyecto.</p>
                 <?php else: ?>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="sortable-objectives">
                         <?php foreach($objetivos as $obj): ?>
-                        <div class="bg-white border border-gray-200 rounded-lg p-4 group relative hover:border-amber-300 transition-colors">
+                        <div class="bg-white border border-gray-200 rounded-lg p-4 group relative hover:border-amber-300 transition-colors" data-id="<?= $obj['id'] ?>">
                             <div class="absolute top-2 right-2 flex space-x-2">
+                                <div class="drag-handle cursor-grab active:cursor-grabbing p-1 text-gray-300 hover:text-amber-600 transition-colors opacity-0 group-hover:opacity-100" title="Arrastrar para reordenar">
+                                    <i data-lucide="grip-vertical" class="w-4 h-4"></i>
+                                </div>
                                 <button onclick="toggleEditObj(<?= $obj['id'] ?>)" type="button" class="text-gray-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Editar">
                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
                                 </button>
@@ -558,31 +574,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 function toggleEditObj(id) {
     const view = document.getElementById('obj-view-' + id);
     const edit = document.getElementById('obj-edit-' + id);
-    if (view.classList.contains('hidden')) {
-        view.classList.remove('hidden');
-        edit.classList.add('hidden');
-    } else {
-        view.classList.add('hidden');
-        edit.classList.remove('hidden');
-    }
+    if (view.classList.contains('hidden')) { view.classList.remove('hidden'); edit.classList.add('hidden'); } 
+    else { view.classList.add('hidden'); edit.classList.remove('hidden'); }
 }
 
 function previewImage(input) {
     const preview = document.getElementById('img-preview');
     if (input.files && input.files[0]) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            preview.classList.remove('hidden');
-        }
+        reader.onload = function(e) { preview.src = e.target.result; preview.classList.remove('hidden'); }
         reader.readAsDataURL(input.files[0]);
-    } else {
-        preview.src = '<?= htmlspecialchars($pro['imagen_portada']) ?>';
-    }
+    } else { preview.src = '<?= htmlspecialchars($pro['imagen_portada']) ?>'; }
 }
 
 function updatePdfName(input) {
@@ -600,15 +607,40 @@ function confirmDelete(id) {
     }
 }
 
+// Inicialización de Sortable para Objetivos
+const sortableObjs = document.getElementById('sortable-objectives');
+if (sortableObjs) {
+    new Sortable(sortableObjs, {
+        animation: 150,
+        handle: '.drag-handle',
+        ghostClass: 'bg-amber-50',
+        onEnd: function() {
+            const order = Array.from(sortableObjs.children).map(el => el.getAttribute('data-id'));
+            const formData = new FormData();
+            formData.append('action', 'reorder_objs');
+            order.forEach(id => formData.append('order[]', id));
+
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') { console.log('Orden de objetivos guardado'); }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    });
+}
+
 // Lógica para Multi-Select con "Pills"
 function initPillSelect(type, colorBase) {
     const dropdown = document.getElementById(`dropdown-${type}`);
     const pillsContainer = document.getElementById(`pills-${type}`);
     const hiddenInputsContainer = document.getElementById(`hidden-inputs-${type}`);
     
-    // Función para añadir una "pill" y ocultar la opción
     function addPill(name) {
-        // Verificar si ya existe en los inputs ocultos para no duplicar en UI
+        if (!name) return;
         if (document.querySelector(`#hidden-inputs-${type} input[value="${name}"]`) === null) {
             const input = document.createElement('input');
             input.type = 'hidden';
@@ -619,52 +651,27 @@ function initPillSelect(type, colorBase) {
 
         const pill = document.createElement('span');
         pill.className = `inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-${colorBase}-100 text-${colorBase}-800 border border-${colorBase}-200 shadow-sm`;
-        pill.innerHTML = `
-            ${name}
-            <button type="button" class="flex-shrink-0 ml-1.5 h-4 w-4 rounded-full inline-flex items-center justify-center text-${colorBase}-600 hover:bg-${colorBase}-200 hover:text-${colorBase}-900 focus:outline-none focus:bg-${colorBase}-200 focus:text-${colorBase}-900">
-                <span class="sr-only">Remove</span>
-                <svg class="h-2 w-2" stroke="currentColor" fill="none" viewBox="0 0 8 8">
-                    <path stroke-linecap="round" stroke-width="1.5" d="M1 1l6 6m0-6L1 7" />
-                </svg>
-            </button>
-        `;
+        pill.innerHTML = `${name}
+            <button type="button" class="flex-shrink-0 ml-1.5 h-4 w-4 rounded-full inline-flex items-center justify-center text-${colorBase}-600 hover:bg-${colorBase}-200 hover:text-${colorBase}-900 focus:outline-none">
+                <svg class="h-2 w-2" stroke="currentColor" fill="none" viewBox="0 0 8 8"><path stroke-linecap="round" stroke-width="1.5" d="M1 1l6 6m0-6L1 7" /></svg>
+            </button>`;
         
-        // Listener para eliminar la "pill"
         pill.querySelector('button').addEventListener('click', () => {
             pill.remove();
-            // Mostrar la opción de nuevo en el dropdown
-             Array.from(dropdown.options).forEach(opt => {
-                if (opt.value === name) opt.style.display = 'block';
-            });
-            // Eliminar de los inputs ocultos
+            Array.from(dropdown.options).forEach(opt => { if (opt.value === name) opt.style.display = 'block'; });
             const hidden = document.querySelector(`#hidden-inputs-${type} input[value="${name}"]`);
             if(hidden) hidden.remove();
         });
-
         pillsContainer.appendChild(pill);
-        
-        // Ocultar del dropdown
-        Array.from(dropdown.options).forEach(opt => {
-            if (opt.value === name) opt.style.display = 'none';
-        });
+        Array.from(dropdown.options).forEach(opt => { if (opt.value === name) opt.style.display = 'none'; });
     }
 
-    // Inicializar visualmente las pastillas basadas en los inputs ocultos generados por PHP
-    Array.from(hiddenInputsContainer.querySelectorAll('input')).forEach(input => {
-        addPill(input.value);
-    });
-
-    // Escuchar el cambio en el selector
-    dropdown.addEventListener('change', (e) => {
-        const selected = e.target.value;
-        if (selected) {
-            addPill(selected);
-            e.target.value = ''; // Resetear al placeholder
-        }
+    Array.from(hiddenInputsContainer.querySelectorAll('input')).forEach(input => addPill(input.value));
+    dropdown.addEventListener('change', (e) => { 
+        if (e.target.value) { addPill(e.target.value); e.target.value = ''; } 
     });
 }
 
-// Inicializar ambos después de cargar
 document.addEventListener('DOMContentLoaded', () => {
     initPillSelect('internos', 'blue');
     initPillSelect('externos', 'amber');

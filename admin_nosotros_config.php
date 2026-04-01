@@ -18,19 +18,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     // Subida de imagen
     $image_path = trim($_POST['current_image'] ?? './img/Edificio.png');
     if (!empty($_FILES['nosotros_imagen']['name'])) {
-        $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        $allowed_mimes = ['image/jpeg', 'image/png'];
+        $allowed_exts = ['jpg', 'jpeg', 'png'];
+        
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime = finfo_file($finfo, $_FILES['nosotros_imagen']['tmp_name']);
         finfo_close($finfo);
 
-        if (!in_array($mime, $allowed)) {
-            $mensaje = '❌ Tipo de archivo no permitido.';
+        $ext = strtolower(pathinfo($_FILES['nosotros_imagen']['name'], PATHINFO_EXTENSION));
+
+        if (!in_array($mime, $allowed_mimes) || !in_array($ext, $allowed_exts)) {
+            $mensaje = '❌ Tipo de archivo no permitido. Solo se acepta .JPG o .PNG';
             $tipo_mensaje = 'error';
         } else {
-            $ext = pathinfo($_FILES['nosotros_imagen']['name'], PATHINFO_EXTENSION);
             $filename = 'nosotros_img_' . time() . '.' . $ext;
             $dest = __DIR__ . '/img/' . $filename;
             if (move_uploaded_file($_FILES['nosotros_imagen']['tmp_name'], $dest)) {
+                // Borrar anterior si existe
+                if ($image_path && file_exists($image_path) && !str_contains($image_path, 'Edificio.png')) {
+                    @unlink($image_path);
+                }
                 $image_path = './img/' . $filename;
             }
         }
@@ -188,13 +195,12 @@ $points = json_decode($config['points'] ?? '[]', true) ?: [];
                             class="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer aspect-video flex flex-col items-center justify-center text-center p-3"
                             onclick="document.getElementById('nosotros-image-input').click()">
                             <div id="dropzone-nosotros-placeholder">
-                                <i data-lucide="upload-cloud" class="w-8 h-8 text-gray-400 mx-auto mb-1"></i>
                                 <p class="text-xs text-gray-500">Clic o arrastra imagen</p>
-                                <p class="text-xs text-gray-400 mt-0.5">PNG, JPG, WEBP</p>
+                                <p class="text-xs text-gray-400 mt-0.5">.JPG, .JPEG o .PNG</p>
                             </div>
                             <img id="dropzone-nosotros-preview" src="" alt="Preview" class="hidden w-full h-full object-cover rounded">
                         </div>
-                        <input type="file" id="nosotros-image-input" name="nosotros_imagen" accept="image/*" class="hidden">
+                        <input type="file" id="nosotros-image-input" name="nosotros_imagen" accept=".jpg,.jpeg,.png" class="hidden">
                     </div>
                 </div>
             </div>

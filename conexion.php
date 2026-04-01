@@ -20,13 +20,22 @@ try {
     throw new \PDOException($e->getMessage(), (int)$e->getCode());
 }
 
-// Configuración global del sitio (Logo)
+// Configuración global del sitio (Logos)
 $site_logo = './img/logo.png';
+$hero_logo_plata = './img/LogoPlata.png';
+
 try {
-    $stmt_logo = $pdo->query("SELECT valor FROM site_config WHERE clave = 'site_logo'");
-    $row_logo = $stmt_logo->fetch();
-    if ($row_logo) $site_logo = $row_logo['valor'];
+    $stmt_config = $pdo->query("SELECT clave, valor FROM site_config WHERE clave IN ('site_logo', 'hero_logo_plata')");
+    $configs = $stmt_config->fetchAll(PDO::FETCH_KEY_PAIR);
+    
+    if (isset($configs['site_logo']) && !empty(trim($configs['site_logo']))) {
+        $site_logo = trim($configs['site_logo']);
+    }
+    
+    if (isset($configs['hero_logo_plata']) && !empty(trim($configs['hero_logo_plata']))) {
+        $hero_logo_plata = trim($configs['hero_logo_plata']);
+    }
 } catch (Exception $e) {
-    // Si la tabla no existe aún, se usa el fallback por defecto
+    // Si la tabla no existe aún, se usan los fallbacks
 }
 ?>

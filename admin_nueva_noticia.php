@@ -130,6 +130,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <textarea name="descripcion_larga" rows="10"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                         placeholder="Escribe aquí todo el desarrollo de la noticia..."><?= htmlspecialchars($not['descripcion_larga']) ?></textarea>
+                    
+                    <div class="mt-3 flex items-center">
+                        <label class="inline-flex items-center cursor-pointer group">
+                             <input type="checkbox" name="es_cursiva" class="sr-only peer">
+                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 relative"></div>
+                             <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors">Activar Estilo Cursivo</span>
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -140,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <h3 class="font-bold text-amber-900">Galería de Imágenes</h3>
             </div>
             <div class="p-6">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Fotos Adicionales (Banner de la noticia)</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Fotos Adicionales (.JPG, .JPEG o .PNG solamente)</label>
                 <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-lg hover:border-amber-400 transition-colors bg-gray-50 group">
                     <div class="space-y-1 text-center">
                         <i data-lucide="image-plus" class="mx-auto h-12 w-12 text-gray-400 group-hover:text-amber-500 transition-colors"></i>
@@ -165,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center">
                 <i data-lucide="image" class="w-5 h-5 mr-2 text-gray-600"></i>
-                <h3 class="font-bold text-gray-900">Imagen de Portada</h3>
+                <h3 class="font-bold text-gray-900">Imagen de Portada (.JPG, .JPEG o .PNG)</h3>
             </div>
             <div class="p-6">
                 <div class="aspect-video w-full rounded-lg bg-gray-100 border border-gray-200 overflow-hidden relative group mb-4 flex items-center justify-center">
@@ -202,7 +210,7 @@ function previewMain(input) {
         const file = input.files[0];
         const ext = file.name.split('.').pop().toLowerCase();
         if (!['jpg', 'jpeg', 'png'].includes(ext)) {
-            alert('Formato de imagen inválido. Solo se permite JPG y PNG.');
+            alert('Formato de imagen inválido. Solo se permite .JPG, .JPEG y .PNG.');
             input.value = '';
             return;
         }
@@ -234,7 +242,7 @@ function previewGallery(input) {
     Array.from(input.files).forEach(file => {
         const ext = file.name.split('.').pop().toLowerCase();
         if (!['jpg', 'jpeg', 'png'].includes(ext)) {
-            alert(`El archivo "${file.name}" no es un formato válido. Solo se permite JPG y PNG.`);
+            alert(`El archivo "${file.name}" no es un formato válido. Solo se permite .JPG, .JPEG y .PNG.`);
             return;
         }
         if (fileBank.some(f => f.name === file.name && f.size === file.size)) return;
