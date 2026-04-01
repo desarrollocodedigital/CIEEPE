@@ -25,13 +25,13 @@ if ($id_edit) {
         exit;
     }
     
-    // Regla de Negocio CIATA: Si está en revisión (pendiente) o publicado, el autor no puede editar
-    if (in_array($doc_edit['estado_publicacion'], ['publicado', 'pendiente']) && $userRol !== 'admin') {
+    // REGLA DE NEGOCIO: Solo se permite editar si está en 'borrador' (o si es admin)
+    if ($doc_edit['estado_publicacion'] !== 'borrador' && $userRol !== 'admin') {
         $modulo = 'mis_documentos';
-        $error = "Este documento está en revisión o ya ha sido publicado. No puede ser editado por el autor en este estado.";
+        $error = "Solo se pueden editar documentos en estado 'Borrador'.";
         $id_edit = null;
     } else {
-        $modulo = 'nuevo'; // Usar el mismo formulario para editar
+        $modulo = 'nuevo'; // Usar el mismo formulario para editar (subir_articulo.php?modulo=nuevo)
     }
 }
 
@@ -43,8 +43,8 @@ if (isset($_GET['delete'])) {
     $doc_del = $stmt->fetch();
     
     if ($doc_del && ($doc_del['id_autor'] == $userId || $userRol === 'admin')) {
-        // REGLA DE NEGOCIO: No permitir eliminar si está publicado (solo admin)
-        if ($doc_del['estado_publicacion'] === 'publicado' && $userRol !== 'admin') {
+        // REGLA DE NEGOCIO: No permitir eliminar si está publicado o en revisión (solo admin)
+        if (in_array($doc_del['estado_publicacion'], ['publicado', 'pendiente']) && $userRol !== 'admin') {
             header("Location: subir_articulo.php?modulo=mis_documentos&error=pub_del");
             exit;
         }
@@ -60,7 +60,7 @@ if (isset($_GET['delete'])) {
 
 // Capturar mensajes por redirección
 if (($_GET['success'] ?? '') === 'del') $success = "Documento eliminado correctamente.";
-if (($_GET['error'] ?? '') === 'pub_del') $error = "Los documentos publicados solo pueden ser eliminados por un administrador.";
+if (($_GET['error'] ?? '') === 'pub_del') $error = "Los documentos en revisión o publicados solo pueden ser eliminados por un administrador.";
 
 // --- Lógica de Búsqueda AJAX (Real-time) ---
 if (isset($_GET['ajax_search'])) {
@@ -169,7 +169,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['subir_documento']) |
             } else {
                 $nombreArchivo = time() . "_" . bin2hex(random_bytes(4)) . ".pdf";
                 $rutaArchivo = $dirDocs . $nombreArchivo;
-                if (!move_uploaded_file($archivo['tmp_name'], $rutaArchivo)) {
+                if (move_uploaded_file($archivo['tmp_name'], $rutaArchivo)) {
+                    // Borrar anterior si es edición
+                    if ($es_edicion && $doc_edit['archivo_documento'] && file_exists($doc_edit['archivo_documento'])) {
+                        @unlink($doc_edit['archivo_documento']);
+                    }
+                } else {
                     $error = "Error al subir el archivo PDF.";
                     $continuar = false;
                 }
@@ -181,12 +186,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['subir_documento']) |
 
         // Procesar portada si se subió una
         if ($continuar && !empty($portada['name'])) {
-            $extPortada = pathinfo($portada['name'], PATHINFO_EXTENSION);
-            $allowedImg = ['jpg', 'jpeg', 'png', 'webp'];
-            if (in_array(strtolower($extPortada), $allowedImg)) {
+            $extPortada = strtolower(pathinfo($portada['name'], PATHINFO_EXTENSION));
+            $allowedImg = ['jpg', 'jpeg', 'png'];
+            if (in_array($extPortada, $allowedImg)) {
                 $nombrePortada = time() . "_p_" . bin2hex(random_bytes(4)) . "." . $extPortada;
                 $rutaPortada = $dirPorts . $nombrePortada;
-                move_uploaded_file($portada['tmp_name'], $rutaPortada);
+                if (move_uploaded_file($portada['tmp_name'], $rutaPortada)) {
+                    // Borrar anterior si es edición
+                    if ($es_edicion && $doc_edit['imagen_portada'] && file_exists($doc_edit['imagen_portada'])) {
+                        @unlink($doc_edit['imagen_portada']);
+                    }
+                }
+            } else {
+                $error = "La portada debe ser .JPG, .JPEG o .PNG.";
+                $continuar = false;
             }
         }
 
@@ -483,9 +496,15 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                                                             if($doc['estado_publicacion'] === 'pendiente') $estadoClass = 'bg-amber-100 text-amber-700';
                                                         ?>
                                                         <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider <?= $estadoClass ?>"><?= $doc['estado_publicacion'] ?></span>
-                                                        <a href="subir_articulo.php?edit=<?= $doc['id'] ?>" class="p-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors">
+                                                        <?php if ($doc['estado_publicacion'] === 'borrador' || $userRol === 'admin'): ?>
+                                                        <a href="subir_articulo.php?edit=<?= $doc['id'] ?>" class="p-1.5 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors" title="Editar">
                                                             <i data-lucide="edit-3" class="w-4 h-4"></i>
                                                         </a>
+                                                        <?php else: ?>
+                                                        <span class="p-1.5 text-slate-300 cursor-not-allowed" title="Edición Protegida - Solo Borradores">
+                                                            <i data-lucide="lock" class="w-4 h-4"></i>
+                                                        </span>
+                                                        <?php endif; ?>
                                                     </div>
                                                 </div>
                                             </li>
@@ -666,7 +685,7 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="space-y-3">
                                         <label class="text-sm font-bold text-slate-700 flex justify-between items-center">
-                                            Documento (PDF) <?= $id_edit ? '<span class="text-[10px] text-slate-400 font-normal">(Dejar vacío para mantener actual)</span>' : '' ?>
+                                            Documento (.PDF solamente) <?= $id_edit ? '<span class="text-[10px] text-slate-400 font-normal">(Dejar vacío para mantener actual)</span>' : '' ?>
                                             <span class="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded uppercase font-bold tracking-tighter">Solo PDF</span>
                                         </label>
                                         <div class="relative group">
@@ -685,18 +704,18 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                                     <div class="space-y-3">
                                         <label class="text-sm font-bold text-slate-700 flex justify-between items-center">
                                             Imagen Portada
-                                            <span class="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded uppercase font-bold tracking-tighter">JPG, PNG, WEBP</span>
+                                            <span class="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded uppercase font-bold tracking-tighter">JPG, JPEG, PNG</span>
                                         </label>
                                         <div class="relative group">
-                                            <input type="file" name="portada" id="file-img" accept=".jpg,.jpeg,.png,.webp" 
+                                            <input type="file" name="portada" id="file-img" accept=".jpg,.jpeg,.png" 
                                                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                                onchange="updateFileName('file-img', 'name-img', true, '.jpg,.jpeg,.png,.webp')">
+                                                onchange="updateFileName('file-img', 'name-img', true, '.jpg,.jpeg,.png')">
                                             <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center transition-all group-hover:border-blue-400 group-hover:bg-blue-50/30">
                                                 <div id="preview-container" class="w-12 h-12 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-3 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors overflow-hidden">
                                                     <i data-lucide="image" class="w-6 h-6"></i>
                                                 </div>
                                                 <p class="text-xs font-bold text-slate-500 group-hover:text-blue-700">Seleccionar Imagen</p>
-                                                <p id="name-img" class="text-[10px] text-slate-400 mt-2 truncate max-w-full italic">Ningún archivo seleccionado</p>
+                                                <p id="name-img" class="text-[10px] text-slate-400 mt-2 truncate max-w-full italic">Solo .JPG, .JPEG o .PNG</p>
                                             </div>
                                         </div>
                                     </div>
@@ -839,9 +858,7 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                                             </td>
                                         </tr>
                                     <?php else: ?>
-                                        <?php foreach($misDocs as $doc):
-                                            $puedeEditar = (!in_array($doc['estado_publicacion'], ['publicado', 'pendiente']) || $userRol === 'admin');
-                                        ?>
+                                        <?php foreach($misDocs as $doc): ?>
                                         <tr class="hover:bg-slate-50/30 transition-colors group">
                                             <td class="px-6 py-4">
                                                 <div class="flex items-center gap-4">
@@ -877,22 +894,23 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                                                         title="Ver PDF">
                                                         <i data-lucide="eye" class="w-4 h-4"></i>
                                                     </button>
-                                                    <?php if ($puedeEditar): ?>
+                                                    
+                                                    <?php if ($doc['estado_publicacion'] === 'borrador' || $userRol === 'admin'): ?>
                                                     <a href="subir_articulo.php?edit=<?= $doc['id'] ?>" class="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all" title="Editar">
                                                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                                                     </a>
                                                     <?php else: ?>
-                                                    <span class="p-2 text-slate-300 cursor-not-allowed" title="Documento Protegido">
+                                                    <span class="p-2 text-slate-300 cursor-not-allowed" title="Edición Protegida - Solo Borradores">
                                                         <i data-lucide="lock" class="w-4 h-4"></i>
                                                     </span>
                                                     <?php endif; ?>
 
-                                                    <?php if ($doc['estado_publicacion'] !== 'publicado' || $userRol === 'admin'): ?>
+                                                    <?php if (!in_array($doc['estado_publicacion'], ['publicado', 'pendiente']) || $userRol === 'admin'): ?>
                                                     <button onclick="confirmarEliminar(<?= $doc['id'] ?>)" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all" title="Eliminar">
                                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                     </button>
                                                     <?php else: ?>
-                                                    <span class="p-2 text-slate-300 cursor-not-allowed" title="Publicado - Solo Admin puede eliminar">
+                                                    <span class="p-2 text-slate-300 cursor-not-allowed" title="Protegido - En Revisión o Publicado">
                                                         <i data-lucide="lock" class="w-4 h-4"></i>
                                                     </span>
                                                     <?php endif; ?>
@@ -996,8 +1014,8 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                                                        (doc.estado_publicacion === 'suspendido' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
                                                        (doc.estado_publicacion === 'rechazado' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-amber-100 text-amber-700')));
                                     
-                                    const canEdit = !['publicado', 'pendiente'].includes(doc.estado_publicacion) || userRol === 'admin';
-                                    const canDelete = doc.estado_publicacion !== 'publicado' || userRol === 'admin';
+                                    const canEdit = doc.estado_publicacion === 'borrador' || userRol === 'admin';
+                                    const canDelete = !['publicado', 'pendiente'].includes(doc.estado_publicacion) || userRol === 'admin';
 
                                     return `
                                         <tr class="hover:bg-slate-50/30 transition-colors group">
@@ -1027,12 +1045,13 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                                                         title="Ver PDF">
                                                         <i data-lucide="eye" class="w-4 h-4"></i>
                                                     </button>
-                                                    ${canEdit ? `
+
+                                                    ${(doc.estado_publicacion === 'borrador' || userRol === 'admin') ? `
                                                     <a href="subir_articulo.php?edit=${doc.id}" class="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-xl transition-all" title="Editar">
                                                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                                                     </a>
                                                     ` : `
-                                                    <span class="p-2 text-slate-300 cursor-not-allowed" title="Documento Protegido">
+                                                    <span class="p-2 text-slate-300 cursor-not-allowed" title="Edición Protegida - Solo Borradores">
                                                         <i data-lucide="lock" class="w-4 h-4"></i>
                                                     </span>
                                                     `}
@@ -1042,7 +1061,7 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                     </button>
                                                     ` : `
-                                                    <span class="p-2 text-slate-300 cursor-not-allowed" title="Publicado - Solo Admin puede eliminar">
+                                                    <span class="p-2 text-slate-300 cursor-not-allowed" title="Protegido - En Revisión o Publicado">
                                                         <i data-lucide="lock" class="w-4 h-4"></i>
                                                     </span>
                                                     `}

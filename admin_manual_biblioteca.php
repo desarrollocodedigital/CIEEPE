@@ -513,8 +513,18 @@
                     </div>
                 </div>
             </div>
-        </section>
-
+        <!-- Sección de Soporte WhatsApp -->
+        <div class="mt-12 p-8 bg-emerald-600 rounded-2xl text-white flex flex-col md:flex-row items-center justify-between shadow-lg shadow-emerald-200">
+            <div class="mb-6 md:mb-0 text-center md:text-left">
+                <h2 class="text-2xl font-bold mb-2">¿Necesitas ayuda con la gestión?</h2>
+                <p class="text-emerald-100 italic">Si tienes problemas con la aprobación de documentos o la administración de usuarios, estamos para apoyarte.</p>
+            </div>
+            <a href="https://wa.me/526672644610" target="_blank"
+                class="px-8 py-4 bg-white text-emerald-600 rounded-xl font-extrabold hover:bg-gray-100 transition-all flex items-center gap-3 shadow-md">
+                <i data-lucide="message-circle" class="w-6 h-6"></i>
+                Chatear con Soporte
+            </a>
+        </div>
     </div>
 
     <!-- ÍNDICE DERECHO (STICKY) -->
@@ -587,4 +597,47 @@
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+
+    // Scrollspy Logic
+    document.addEventListener('DOMContentLoaded', () => {
+        const sections = document.querySelectorAll('section[id], div[id^="header-"]'); // En este archivo el header es un div
+        // Nota: En admin_manual_biblioteca.php el header principal no tiene id="inicio", 
+        // pero las secciones sí tienen sus IDs. Vamos a observar las áreas principales.
+        const navLinks = document.querySelectorAll('nav a[href^="#"]');
+        
+        const observerOptions = {
+            rootMargin: '-10% 0px -80% 0px',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    navLinks.forEach(link => {
+                        // Limpiar estados activos
+                        link.classList.remove('bg-emerald-50', 'bg-indigo-50', 'bg-blue-50', 'bg-amber-50', 'bg-slate-50');
+                        link.classList.remove('border-emerald-500', 'border-indigo-500', 'border-blue-500', 'border-amber-500', 'border-slate-500');
+                        link.classList.add('border-transparent');
+
+                        if (link.getAttribute('href') === `#${id}`) {
+                            link.classList.remove('border-transparent');
+                            // Aplicar color según el href definido en el HTML original
+                            if(id === 'introduccion') link.classList.add('bg-emerald-50', 'border-emerald-500');
+                            if(id === 'acceso') link.classList.add('bg-indigo-50', 'border-indigo-500');
+                            if(id === 'dashboard') link.classList.add('bg-blue-50', 'border-blue-500');
+                            if(id === 'biblioteca-general') link.classList.add('bg-emerald-50', 'border-emerald-500');
+                            if(id === 'documentos') link.classList.add('bg-amber-50', 'border-amber-500');
+                            if(id === 'solicitudes') link.classList.add('bg-indigo-50', 'border-indigo-500');
+                            if(id === 'usuarios') link.classList.add('bg-blue-50', 'border-blue-500');
+                            if(id === 'configuracion') link.classList.add('bg-slate-50', 'border-slate-500');
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+
+        const targetSections = document.querySelectorAll('section[id]');
+        targetSections.forEach(section => observer.observe(section));
+    });
 </script>

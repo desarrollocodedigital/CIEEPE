@@ -21,6 +21,7 @@ if ($action === 'create_news') {
     $desc_c   = trim($_POST['descripcion_corta'] ?? '');
     $desc_l   = trim($_POST['descripcion_larga'] ?? '');
     $fecha    = $_POST['fecha_publicacion'] ?? date('Y-m-d H:i:s');
+    $es_cursiva = isset($_POST['es_cursiva']) ? 1 : 0;
 
     if (empty($titulo)) {
         echo json_encode(['ok' => false, 'error' => 'El título es obligatorio.']);
@@ -33,7 +34,7 @@ if ($action === 'create_news') {
     // Portada
     if (isset($_FILES['imagen_portada']) && $_FILES['imagen_portada']['error'] == 0) {
         $ext = strtolower(pathinfo($_FILES['imagen_portada']['name'], PATHINFO_EXTENSION));
-        if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+        if (in_array($ext, ['jpg', 'jpeg', 'png'])) {
             if (!is_dir('img/noticias')) mkdir('img/noticias', 0755, true);
             $dest = 'img/noticias/news_p_' . bin2hex(random_bytes(8)) . '.' . $ext;
             if (move_uploaded_file($_FILES['imagen_portada']['tmp_name'], $dest)) {
@@ -56,8 +57,8 @@ if ($action === 'create_news') {
         }
     }
 
-    $stmt = $pdo->prepare("INSERT INTO noticias (titulo, descripcion_corta, descripcion_larga, imagen_portada, galeria, fecha_publicacion) VALUES (?, ?, ?, ?, ?, ?)");
-    if ($stmt->execute([$titulo, $desc_c, $desc_l, $imagen_portada, json_encode(array_values($galeria)), $fecha])) {
+    $stmt = $pdo->prepare("INSERT INTO noticias (titulo, descripcion_corta, descripcion_larga, imagen_portada, galeria, fecha_publicacion, es_cursiva) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    if ($stmt->execute([$titulo, $desc_c, $desc_l, $imagen_portada, json_encode(array_values($galeria)), $fecha, $es_cursiva])) {
         echo json_encode(['ok' => true, 'redirect' => 'admin.php?modulo=noticias&status=created']);
     } else {
         echo json_encode(['ok' => false, 'error' => 'Error al guardar en la base de datos.']);
@@ -74,6 +75,7 @@ if ($action === 'edit_news') {
     $desc_c = trim($_POST['descripcion_corta'] ?? '');
     $desc_l = trim($_POST['descripcion_larga'] ?? '');
     $fecha  = $_POST['fecha_publicacion'] ?? null;
+    $es_cursiva = isset($_POST['es_cursiva']) ? 1 : 0;
 
     if (!$id || empty($titulo)) {
         echo json_encode(['ok' => false, 'error' => 'Datos incompletos.']);
@@ -123,8 +125,8 @@ if ($action === 'edit_news') {
         }
     }
 
-    $stmt = $pdo->prepare("UPDATE noticias SET titulo=?, descripcion_corta=?, descripcion_larga=?, imagen_portada=?, galeria=?, fecha_publicacion=? WHERE id=?");
-    if ($stmt->execute([$titulo, $desc_c, $desc_l, $imagen_portada, json_encode(array_values($galeria)), $fecha, $id])) {
+    $stmt = $pdo->prepare("UPDATE noticias SET titulo=?, descripcion_corta=?, descripcion_larga=?, imagen_portada=?, galeria=?, fecha_publicacion=?, es_cursiva=? WHERE id=?");
+    if ($stmt->execute([$titulo, $desc_c, $desc_l, $imagen_portada, json_encode(array_values($galeria)), $fecha, $es_cursiva, $id])) {
         echo json_encode(['ok' => true, 'redirect' => "admin.php?modulo=editar_noticia&id=$id&status=updated"]);
     } else {
         echo json_encode(['ok' => false, 'error' => 'Error al actualizar.']);

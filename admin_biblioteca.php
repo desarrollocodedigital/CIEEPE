@@ -641,7 +641,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_config'])) {
                                                 </div>
                                                 <div>
                                                     <p class="text-sm font-bold text-slate-900"><?= htmlspecialchars($d['titulo']) ?></p>
-                                                    <a href="<?= $d['archivo_documento'] ?>" target="_blank" class="text-[9px] text-blue-600 font-bold hover:underline">REVISAR CONTENIDO</a>
+                                                    <button onclick="openDocumentViewer('<?= $d['archivo_documento'] ?>', '<?= addslashes($d['titulo']) ?>')" class="text-[9px] text-blue-600 font-bold hover:underline uppercase">REVISAR CONTENIDO</button>
                                                 </div>
                                             </div>
                                         </td>

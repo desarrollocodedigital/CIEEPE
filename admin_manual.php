@@ -20,6 +20,10 @@ if (!isset($_SESSION['user_id'])) {
     .custom-scroll::-webkit-scrollbar { width: 4px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+
+    section {
+        scroll-margin-top: 80px;
+    }
 </style>
 
 <div class="flex flex-col lg:flex-row gap-8 h-full max-w-7xl mx-auto">
@@ -1115,4 +1119,50 @@ if (!isset($_SESSION['user_id'])) {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+
+    // Scrollspy Logic para el Manual Administrativo
+    document.addEventListener('DOMContentLoaded', () => {
+        const sections = document.querySelectorAll('section[id], div[id="inicio"]');
+        const navLinks = document.querySelectorAll('nav a[href^="#"]');
+        
+        const observerOptions = {
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    navLinks.forEach(link => {
+                        // Limpiar estados activos previos
+                        link.classList.remove('bg-blue-50', 'bg-indigo-50', 'bg-emerald-50', 'bg-amber-50', 'bg-slate-50', 'bg-red-50');
+                        link.classList.remove('border-blue-500', 'border-indigo-500', 'border-emerald-500', 'border-amber-500', 'border-slate-500', 'border-red-500');
+                        link.classList.add('border-transparent');
+
+                        if (link.getAttribute('href') === `#${id}`) {
+                            link.classList.remove('border-transparent');
+                            
+                            // Mapeo de colores por sección
+                            if (['introduccion', 'investigadores', 'lineas', 'config-nosotros'].includes(id)) {
+                                link.classList.add('bg-blue-50', 'border-blue-500');
+                            } else if (['acceso', 'noticias'].includes(id)) {
+                                link.classList.add('bg-indigo-50', 'border-indigo-500');
+                            } else if (id === 'dashboard') {
+                                link.classList.add('bg-emerald-50', 'border-emerald-500');
+                            } else if (id === 'proyectos') {
+                                link.classList.add('bg-amber-50', 'border-amber-500');
+                            } else if (id === 'config-inicio') {
+                                link.classList.add('bg-slate-50', 'border-slate-500');
+                            } else if (id === 'config-contacto') {
+                                link.classList.add('bg-red-50', 'border-red-500');
+                            }
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => observer.observe(section));
+    });
 </script>

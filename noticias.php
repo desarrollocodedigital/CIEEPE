@@ -31,7 +31,7 @@ $noticias = $stmt->fetchAll();
     <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 py-2 bg-white text-blue-900 shadow-md">
         <div class="container mx-auto px-4 md:px-8 flex justify-between items-center">
             <a href="index.html#inicio" id="nav-logo" class="flex items-center">
-                <img src="./img/logo.png" alt="CIEEPE ENEES Logo" class="h-12 w-auto md:h-14">
+                <img src="<?= htmlspecialchars($site_logo) ?>" alt="CIEEPE ENEES Logo" class="h-12 w-auto md:h-14">
             </a>
             <div class="hidden md:flex space-x-6 lg:space-x-8">
                 <a href="index.html#inicio" class="nav-link text-sm font-medium hover:text-blue-600 transition-colors text-gray-700">Inicio</a>

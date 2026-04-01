@@ -180,6 +180,15 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                         case 'editar_proyecto':
                             echo "Editar Proyecto";
                             break;
+                        case 'noticias':
+                            echo "Gestión de Noticias";
+                            break;
+                        case 'nueva_noticia':
+                            echo "Publicar Nueva Noticia";
+                            break;
+                        case 'editar_noticia':
+                            echo "Editar Noticia";
+                            break;
                         case 'lineas':
                             echo "Líneas de Investigación";
                             break;

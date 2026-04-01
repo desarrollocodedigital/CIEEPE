@@ -84,7 +84,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_documento'])) 
             } else {
                 $nombreArchivo = time() . "_" . bin2hex(random_bytes(4)) . ".pdf";
                 $rutaArchivo = $dirDocs . $nombreArchivo;
-                if (!move_uploaded_file($archivo['tmp_name'], $rutaArchivo)) {
+                if (move_uploaded_file($archivo['tmp_name'], $rutaArchivo)) {
+                    // Borrar anterior
+                    if ($doc_edit['archivo_documento'] && file_exists($doc_edit['archivo_documento'])) {
+                        @unlink($doc_edit['archivo_documento']);
+                    }
+                } else {
                     $error = "Error al subir el archivo PDF.";
                     $continuar = false;
                 }
@@ -92,12 +97,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['editar_documento'])) 
         }
 
         if ($continuar && !empty($portada['name'])) {
-            $extPortada = pathinfo($portada['name'], PATHINFO_EXTENSION);
-            $allowedImg = ['jpg', 'jpeg', 'png', 'webp'];
-            if (in_array(strtolower($extPortada), $allowedImg)) {
+            $extPortada = strtolower(pathinfo($portada['name'], PATHINFO_EXTENSION));
+            $allowedImg = ['jpg', 'jpeg', 'png'];
+            if (in_array($extPortada, $allowedImg)) {
                 $nombrePortada = time() . "_p_" . bin2hex(random_bytes(4)) . "." . $extPortada;
                 $rutaPortada = $dirPorts . $nombrePortada;
-                move_uploaded_file($portada['tmp_name'], $rutaPortada);
+                if (move_uploaded_file($portada['tmp_name'], $rutaPortada)) {
+                    // Borrar anterior
+                    if ($doc_edit['imagen_portada'] && file_exists($doc_edit['imagen_portada'])) {
+                        @unlink($doc_edit['imagen_portada']);
+                    }
+                }
+            } else {
+                $error = "La portada debe ser .JPG, .JPEG o .PNG.";
+                $continuar = false;
             }
         }
 
@@ -349,24 +362,24 @@ $inactiveClass = "text-blue-100 hover:bg-blue-800 hover:text-white border-l-4 bo
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="space-y-3">
-                                        <label class="text-sm font-bold text-slate-700 tracking-tight">Reemplazar PDF <span class="text-[10px] text-slate-400">(Opcional)</span></label>
+                                        <label class="text-sm font-bold text-slate-700 tracking-tight">Archivo del Documento (.PDF solamente)</label>
                                         <div class="relative group">
                                             <input type="file" name="archivo" id="file-pdf" accept=".pdf" 
                                                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                                onchange="updateFileName('file-pdf', 'name-pdf')">
-                                            <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center transition-all group-hover:border-blue-400 group-hover:bg-blue-50/30">
-                                                <div class="w-12 h-12 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-3 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                                                onchange="updateFileName('file-pdf', 'name-pdf', false)">
+                                            <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center transition-all group-hover:border-red-400 group-hover:bg-red-50/30">
+                                                <div id="pdf-preview-container" class="w-12 h-12 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mb-3 group-hover:bg-red-100 group-hover:text-red-600 transition-colors">
                                                     <i data-lucide="file-text" class="w-6 h-6"></i>
                                                 </div>
-                                                <p class="text-xs font-bold text-slate-500 group-hover:text-blue-700">Nuevo Archivo PDF</p>
-                                                <p id="name-pdf" class="text-[10px] text-slate-400 mt-2 truncate max-w-full italic">Ningún archivo seleccionado</p>
+                                                <p class="text-xs font-bold text-slate-500 group-hover:text-red-700">Reemplazar PDF</p>
+                                                <p id="name-pdf" class="text-[10px] text-slate-400 mt-2 truncate max-w-full italic">Solo archivos .PDF</p>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="space-y-3">
-                                        <label class="text-sm font-bold text-slate-700 tracking-tight">Nueva Portada <span class="text-[10px] text-slate-400">(Opcional)</span></label>
+                                         <label class="text-sm font-bold text-slate-700 tracking-tight">Nueva Portada (.JPG, .JPEG o .PNG)</label>
                                         <div class="relative group">
-                                            <input type="file" name="portada" id="file-img" accept="image/*" 
+                                            <input type="file" name="portada" id="file-img" accept=".jpg,.jpeg,.png" 
                                                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                                 onchange="updateFileName('file-img', 'name-img', true)">
                                             <div class="border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center transition-all group-hover:border-blue-400 group-hover:bg-blue-50/30">
@@ -374,7 +387,7 @@ $inactiveClass = "text-blue-100 hover:bg-blue-800 hover:text-white border-l-4 bo
                                                     <i data-lucide="image" class="w-6 h-6"></i>
                                                 </div>
                                                 <p class="text-xs font-bold text-slate-500 group-hover:text-blue-700">Cambiar Imagen</p>
-                                                <p id="name-img" class="text-[10px] text-slate-400 mt-2 truncate max-w-full italic">Ningún archivo seleccionado</p>
+                                                <p id="name-img" class="text-[10px] text-slate-400 mt-2 truncate max-w-full italic">Solo .JPG, .JPEG o .PNG</p>
                                             </div>
                                         </div>
                                     </div>

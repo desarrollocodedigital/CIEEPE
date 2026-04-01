@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     // 1. Manejo Subida de Imagen
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
         $ext = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
-        if (in_array($ext, ['jpg', 'png'])) {
+        if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
             $nuevo_nombre = uniqid('foto_') . '.' . $ext;
             $ruta_img = $img_dir . $nuevo_nombre;
             if (move_uploaded_file($_FILES['foto']['tmp_name'], $ruta_img)) {
@@ -263,15 +263,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <h4 class="text-sm font-bold text-blue-900 mb-4 flex items-center"><i data-lucide="upload-cloud" class="w-4 h-4 mr-2"></i> SUBIR ARCHIVOS</h4>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- Foto -->
                         <div>
-                            <label class="block text-xs font-bold text-blue-800 uppercase tracking-wide mb-3">Foto de Perfil (.JPG o .PNG)</label>
+                            <label class="block text-xs font-bold text-blue-800 uppercase tracking-wide mb-3">Foto de Perfil (.JPG, .JPEG o .PNG)</label>
                             <input type="file" name="foto" accept=".jpg,.jpeg,.png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
                         </div>
 
                         <!-- CV -->
                         <div>
-                            <label class="block text-xs font-bold text-blue-800 uppercase tracking-wide mb-3">Currículum (.PDF)</label>
+                            <label class="block text-xs font-bold text-blue-800 uppercase tracking-wide mb-3">Currículum (.PDF solamente)</label>
                             <input type="file" name="cv" accept=".pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-600 file:text-white hover:file:bg-red-700 cursor-pointer">
                         </div>
                     </div>

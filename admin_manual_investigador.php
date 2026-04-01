@@ -102,9 +102,6 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                     <i data-lucide="menu" class="w-6 h-6"></i>
                 </button>
                 <div class="flex items-center">
-                    <a href="subir_articulo.php?modulo=inicio" class="mr-4 text-gray-400 hover:text-blue-600 transition-colors p-1.5 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center">
-                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
-                    </a>
                     <h2 class="text-xl font-bold text-gray-800 hidden sm:block">
                         Manual del Investigador
                     </h2>
@@ -417,8 +414,18 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                                 </div>
                             </div>
                         </div>
-                    </section>
-
+                    <!-- Sección de Soporte WhatsApp -->
+                    <div class="mt-12 p-8 bg-emerald-600 rounded-2xl text-white flex flex-col md:flex-row items-center justify-between shadow-lg shadow-emerald-200">
+                        <div class="mb-6 md:mb-0 text-center md:text-left">
+                            <h2 class="text-2xl font-bold mb-2">¿Necesitas ayuda con el acceso?</h2>
+                            <p class="text-emerald-100 italic">Si tienes problemas al visualizar un documento o dudas sobre el uso de la IA, nuestro equipo te ayudará.</p>
+                        </div>
+                        <a href="https://wa.me/526672644610" target="_blank"
+                            class="px-8 py-4 bg-white text-emerald-600 rounded-xl font-extrabold hover:bg-gray-100 transition-all flex items-center gap-3 shadow-md">
+                            <i data-lucide="message-circle" class="w-6 h-6"></i>
+                            Chatear con Soporte
+                        </a>
+                    </div>
                 </div>
 
                 <div class="hidden xl:block lg:w-72 flex-shrink-0">
@@ -463,7 +470,7 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                                 <p class="text-[10px] text-gray-400 mb-3 leading-relaxed">¿Dudas sobre la publicación?</p>
                                 <a href="https://wa.me/526672644610" target="_blank" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 transition-colors rounded-lg text-xs font-bold flex items-center justify-center gap-2">
                                     <i data-lucide="message-circle" class="w-4 h-4"></i>
-                                    Soporte WhatsApp
+                                    Contactar Soporte
                                 </a>
                             </div>
                         </div>
@@ -477,6 +484,43 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
+
+        // Scrollspy Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('section[id], div[id="inicio"]');
+            const navLinks = document.querySelectorAll('nav a[href^="#"]');
+            
+            const observerOptions = {
+                rootMargin: '-10% 0px -80% 0px',
+                threshold: 0
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        navLinks.forEach(link => {
+                            // Limpiar estados activos (Investigador usa principalmente esmeralda y blue)
+                            link.classList.remove('bg-emerald-50', 'bg-blue-50', 'bg-slate-50', 'bg-indigo-50');
+                            link.classList.remove('border-emerald-500', 'border-blue-500', 'border-slate-900', 'border-indigo-500');
+                            link.classList.add('border-transparent');
+
+                            if (link.getAttribute('href') === `#${id}`) {
+                                link.classList.remove('border-transparent');
+                                // Aplicar color según el href definido en el HTML
+                                if(id === 'introduccion') link.classList.add('bg-emerald-50', 'border-emerald-500');
+                                if(id === 'acceso') link.classList.add('bg-blue-50', 'border-blue-500');
+                                if(id === 'dashboard') link.classList.add('bg-slate-50', 'border-slate-900');
+                                if(id === 'novedades') link.classList.add('bg-indigo-50', 'border-indigo-500');
+                                if(id === 'estado') link.classList.add('bg-emerald-50', 'border-emerald-500');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => observer.observe(section));
+        });
     </script>
 </body>
 </html>

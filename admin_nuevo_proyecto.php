@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // Subir Imagen
         if (isset($_FILES['imagen_portada']) && $_FILES['imagen_portada']['error'] == 0) {
-            $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+            $allowed = ['jpg', 'jpeg', 'png'];
             $filename = $_FILES['imagen_portada']['name'];
             $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
             if (in_array($ext, $allowed)) {
@@ -189,10 +189,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <div class="flex text-sm text-gray-600 justify-center">
                                 <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 px-2 py-1 shadow-sm border border-gray-200">
                                     <span>Sube un archivo</span>
-                                    <input id="file-upload" name="imagen_portada" type="file" class="sr-only" accept="image/*" onchange="previewImage(this)">
+                                    <input id="file-upload" name="imagen_portada" type="file" class="sr-only" accept=".jpg,.jpeg,.png" onchange="previewImage(this)">
                                 </label>
                             </div>
-                            <p class="text-xs text-gray-500">PNG, JPG, WEBP hasta 2MB</p>
+                            <p class="text-xs text-gray-500">Solo .JPG, .JPEG o .PNG hasta 2MB</p>
                         </div>
                     </div>
                     <img id="img-preview" src="#" alt="Vista previa" class="mt-4 h-32 w-auto object-cover rounded-lg border border-gray-200 hidden shadow-sm">
@@ -336,7 +336,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Protocolo en PDF (Opcional)</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Protocolo en PDF (.PDF solamente)</label>
                             <div class="flex items-center space-x-4">
                                 <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-blue-50 hover:border-blue-300 transition-colors">
                                     <div class="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500" id="pdf-upload-ui">
