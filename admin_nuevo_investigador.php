@@ -227,7 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Teléfono</label>
                         <div class="relative">
                             <i data-lucide="phone" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400"></i>
-                            <input type="text" name="telefono" value="<?= htmlspecialchars($inv['telefono']) ?>" oninput="this.value = this.value.replace(/[^0-9]/g, '');" class="w-full rounded-lg border-gray-300 border focus:border-blue-500 pl-10 p-2.5 outline-none text-sm shadow-sm bg-gray-50 focus:bg-white" placeholder="Ej: 999888777">
+                            <input type="text" name="telefono" value="<?= htmlspecialchars($inv['telefono']) ?>" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" class="w-full rounded-lg border-gray-300 border focus:border-blue-500 pl-10 p-2.5 outline-none text-sm shadow-sm bg-gray-50 focus:bg-white" placeholder="Ej: 9998887779">
                         </div>
                     </div>
                     <div class="md:col-span-2">

@@ -410,13 +410,13 @@ if (!isset($_SESSION['user_id'])) {
                                 Eliminación Segura
                             </h4>
                             <p class="text-[11px] text-gray-600 leading-relaxed">
-                                Al usar el icono de papelera <i data-lucide="trash-2" class="w-3 h-3 text-red-500 mx-1"></i>, se lanzará una confirmación para evitar borrados accidentales de investigadores con trayectoria vinculada.
+                                Al usar el icono de papelera <i data-lucide="trash-2" class="w-3 h-3 text-red-500 inline mx-1"></i>, se lanzará una confirmación para evitar borrados accidentales de investigadores con trayectoria vinculada.
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Sub-sección: 3.4 Funciones Avanzadas -->
+                <!-- Sub-sección: 3.4 Especialidades y Publicaciones -->
                 <div id="investigador-avanzado" class="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 shadow-sm font-sans">
                     <h3 class="text-xl font-bold text-blue-900 mb-6 flex items-center gap-2">
                         <i data-lucide="award" class="w-6 h-6 text-blue-600"></i>
@@ -432,7 +432,7 @@ if (!isset($_SESSION['user_id'])) {
                             </h4>
                             <ul class="text-xs space-y-1.5 text-gray-700">
                                 <li>• Elige o crea <strong>nuevas especialidades</strong> mediante el interruptor superior.</li>
-                                <li>• Define el <strong>orden</strong> para controlar cómo se listan en el perfil público.</li>
+                                <li>• Organiza el <strong>orden</strong> de aparición simplemente <strong>arrastrando y soltando</strong> las tarjetas en la posición que desees; el sistema guardará el nuevo orden automáticamente.</li>
                             </ul>
                         </div>
 
@@ -444,7 +444,7 @@ if (!isset($_SESSION['user_id'])) {
                             </h4>
                             <ul class="text-xs space-y-1.5 text-gray-700">
                                 <li><strong>• Título y Enlace:</strong> Proporciona el nombre de la obra y link directo si existe.</li>
-                                <li><strong>• Orden de jerarquía:</strong> Prioriza las publicaciones más relevantes al inicio.</li>
+                                <li><strong>• Orden de jerarquía:</strong> Puedes organizar tus obras moviendo las tarjetas de arriba a abajo con el ratón (clic y arrastrar).</li>
                             </ul>
                         </div>
                     </div>
@@ -615,8 +615,8 @@ if (!isset($_SESSION['user_id'])) {
                             <li class="flex items-start gap-3">
                                 <div class="w-6 h-6 rounded bg-amber-100 flex items-center justify-center text-amber-600 flex-shrink-0 mt-0.5 text-xs font-bold font-sans">2</div>
                                 <div>
-                                    <strong class="text-xs text-gray-900 tracking-tight">Jerarquía:</strong>
-                                    <p class="text-[10px] mt-1 text-gray-500 italic">Usa el campo de orden para priorizar qué objetivos se ven primero en la ficha pública.</p>
+                                    <strong class="text-xs text-gray-900 tracking-tight">Jerarquía y Prioridad:</strong>
+                                    <p class="text-[10px] mt-1 text-gray-500 italic">Para cambiar la prioridad, simplemente <strong>haz clic y arrastra</strong> la tarjeta del objetivo a su nuevo lugar. Esto facilita organizar tus metas visualmente.</p>
                                 </div>
                             </li>
                         </ul>
@@ -666,7 +666,7 @@ if (!isset($_SESSION['user_id'])) {
                         <i data-lucide="file-plus-2" class="w-5 h-5 text-indigo-500"></i>
                         5.2 Registro de Nueva Noticia
                     </h3>
-                    <p>El registro de noticias utiliza un diseño simplificado de <strong>2 columnas</strong> para separar el contenido intelectual del material visual:</p>
+                    <p>Al hacer clic en <strong>"Nueva Noticia"</strong>, el sistema desplegará un formulario simplificado de <strong>2 columnas</strong> para separar el contenido intelectual del material visual:</p>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
                         <!-- Col 1: Bloque Editorial -->
@@ -682,7 +682,7 @@ if (!isset($_SESSION['user_id'])) {
                                 <li><strong>• Título Oficial:</strong> Encabezado principal de la noticia.</li>
                                 <li><strong>• Fecha/Hora:</strong> Indica la fecha del evento o comunicado para el público.</li>
                                 <li><strong>• Resumen Corto:</strong> Texto de 255 caracteres para las tarjetas del feed principal.</li>
-                                <li><strong>• Cuerpo de Noticia:</strong> Editor de texto enriquecido para el desarrollo total de la nota.</li>
+                                <li><strong>• Cuerpo de Noticia:</strong> Editor de texto enriquecido para el desarrollo total de la nota. Incluye herramientas para dar formato, como poner el texto en <em>cursiva</em>.</li>
                             </ul>
                         </div>
 
@@ -774,7 +774,7 @@ if (!isset($_SESSION['user_id'])) {
                         <i data-lucide="book-plus" class="w-5 h-5 text-blue-500"></i>
                         6.2 Registro de Nueva Línea
                     </h3>
-                    <p>Al crear una nueva línea de investigación, configurarás su identidad visual y su enfoque académico en dos bloques simples:</p>
+                    <p>Al hacer clic en <strong>"Añadir Línea"</strong>, configurarás su identidad visual y su enfoque académico en dos bloques simples:</p>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
                         <!-- Col 1: Identidad Visual -->

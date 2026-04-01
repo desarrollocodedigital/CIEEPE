@@ -34,15 +34,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 
     if (empty($error)) {
+        // Obtener el título antiguo para la actualización en cascada
+        $old_stmt = $pdo->prepare("SELECT titulo FROM lineas_investigacion WHERE id = ?");
+        $old_stmt->execute([$id]);
+        $titulo_antiguo = $old_stmt->fetchColumn();
+        $titulo_nuevo = $linea['titulo'];
+
         $sql = "UPDATE lineas_investigacion SET titulo = ?, descripcion = ?, icono = ?, color = ? WHERE id = ?";
         $stmt = $pdo->prepare($sql);
         if ($stmt->execute([
-            $linea['titulo'], 
+            $titulo_nuevo, 
             $linea['descripcion'], 
             $linea['icono'], 
             $linea['color'],
             $id
         ])) {
+            // Si el nombre de la línea cambió, actualizamos las referencias en otras tablas (Cascada)
+            if ($titulo_antiguo && $titulo_nuevo !== $titulo_antiguo) {
+                // 1. Actualizar Investigadores (Columna etiqueta_badge)
+                $upd_inv = $pdo->prepare("UPDATE investigadores SET etiqueta_badge = ? WHERE etiqueta_badge = ?");
+                $upd_inv->execute([$titulo_nuevo, $titulo_antiguo]);
+
+                // 2. Actualizar Proyectos (Columna categoria)
+                $upd_pro = $pdo->prepare("UPDATE proyectos SET categoria = ? WHERE categoria = ?");
+                $upd_pro->execute([$titulo_nuevo, $titulo_antiguo]);
+            }
+
             $mensaje = "Línea de investigación actualizada exitosamente.";
         } else {
             $error = 'Ocurrió un error al actualizar la base de datos.';

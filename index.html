@@ -1404,42 +1404,23 @@
 
             const navbar = document.getElementById('navbar');
 
-            const navLogo = document.getElementById('nav-logo');
-
             const navLinks = document.querySelectorAll('.nav-link');
-
             const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 
-
-
             window.addEventListener('scroll', () => {
-
                 const logoImg = document.getElementById('logo-img');
 
                 if (window.scrollY > 50) {
                     navbar.classList.remove('bg-transparent', 'text-white', 'py-4');
                     navbar.classList.add('bg-white', 'text-blue-900', 'shadow-md', 'py-2');
-
-                    // Usar logo dinámico color
                     logoImg.src = globalLogoColor;
-
-                    navLinks.forEach(link => {
-                        link.classList.remove('text-white');
-                        link.classList.add('text-gray-700');
-                    });
+                    if(mobileMenuBtn) mobileMenuBtn.classList.add('text-blue-900');
                 } else {
                     navbar.classList.add('bg-transparent', 'text-white', 'py-4');
                     navbar.classList.remove('bg-white', 'text-blue-900', 'shadow-md', 'py-2');
-
-                    // Usar logo dinámico plata
                     logoImg.src = globalLogoPlata;
-
-                    navLinks.forEach(link => {
-                        link.classList.add('text-white');
-                        link.classList.remove('text-gray-700');
-                    });
+                    if(mobileMenuBtn) mobileMenuBtn.classList.remove('text-blue-900');
                 }
-
             });
 
 
@@ -1566,6 +1547,111 @@
 
         // Inicialización final de iconos
         lucide.createIcons();
+
+        // === Sistema de Scroll Spy Dinámico ===
+        (function() {
+            const sectionConfig = {
+                'inicio': '#inicio',
+                'nosotros': '#nosotros',
+                'investigacion': '#investigacion',
+                'proyectos-recientes': 'proyectos.php',
+                'noticias': 'noticias.php',
+                'equipo': 'investigadores.php',
+                'contacto': '#contacto'
+            };
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const mobileLinks = document.querySelectorAll('#mobile-sidebar-panel nav a');
+            
+            const observerOptions = {
+                root: null,
+                threshold: 0.2, // Reducido para mayor sensibilidad
+                rootMargin: "-10% 0px -20% 0px"
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        const targetHref = sectionConfig[id];
+                        if (targetHref) updateActiveLinks(targetHref);
+                    }
+                });
+            }, observerOptions);
+
+            Object.keys(sectionConfig).forEach(id => {
+                const section = document.getElementById(id);
+                if (section) observer.observe(section);
+            });
+
+            function updateActiveLinks(targetHref) {
+                const isWhite = document.getElementById('navbar').classList.contains('bg-white');
+
+                const checkMatch = (href) => {
+                    if (!href) return false;
+                    // Coincidencia exacta
+                    if (href === targetHref) return true;
+                    // Coincidencia de ancla (ej: index.html#nosotros vs #nosotros)
+                    if (targetHref.startsWith('#') && href.endsWith(targetHref)) return true;
+                    // Coincidencia de archivo PHP (ej: noticias.php)
+                    if (!targetHref.startsWith('#') && href.includes(targetHref)) return true;
+                    return false;
+                };
+
+                // Desktop Navbar
+                navLinks.forEach(link => {
+                    if (checkMatch(link.getAttribute('href'))) {
+                        link.classList.remove('text-white', 'text-gray-700', 'hover:text-blue-400', 'hover:text-blue-600');
+                        link.classList.add('text-blue-600');
+                    } else {
+                        link.classList.remove('text-blue-600');
+                        if (isWhite) {
+                            link.classList.add('text-gray-700');
+                            link.classList.remove('text-white');
+                        } else {
+                            link.classList.add('text-white');
+                            link.classList.remove('text-gray-700');
+                        }
+                    }
+                });
+
+                // Mobile Sidebar
+                mobileLinks.forEach(link => {
+                    const icon = link.querySelector('i');
+                    if (checkMatch(link.getAttribute('href'))) {
+                        link.classList.add('bg-blue-50', 'text-blue-900');
+                        link.classList.remove('text-gray-700');
+                        if (icon) icon.classList.add('text-blue-600', 'opacity-100');
+                    } else {
+                        link.classList.remove('bg-blue-50', 'text-blue-900');
+                        link.classList.add('text-gray-700');
+                        if (icon) icon.classList.remove('text-blue-600', 'opacity-100');
+                    }
+                });
+            }
+
+            // Sincronizar colores base al hacer scroll (sin pisar el activo)
+            window.addEventListener('scroll', () => {
+                const isWhite = document.getElementById('navbar').classList.contains('bg-white');
+                navLinks.forEach(link => {
+                    if (!link.classList.contains('text-blue-600')) {
+                        if (isWhite) {
+                            link.classList.remove('text-white');
+                            link.classList.add('text-gray-700');
+                        } else {
+                            link.classList.remove('text-gray-700');
+                            link.classList.add('text-white');
+                        }
+                    }
+                });
+            });
+            
+            // Forzar una actualización inicial
+            setTimeout(() => {
+                const scrollPos = window.scrollY;
+                if(scrollPos < 100) updateActiveLinks('#inicio');
+            }, 100);
+        })();
     </script>
 
 </body>
