@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $stmt = $pdo->prepare("INSERT INTO nosotros_config (section_title, main_title, description_1, description_2, image_path, points) VALUES (?,?,?,?,?,?)");
         }
         $stmt->execute([$section_title, $main_title, $description_1, $description_2, $image_path, $points_json]);
-        $mensaje = '✅ Sección Nosotros actualizada correctamente.';
+        $mensaje = 'Sección Nosotros actualizada correctamente.';
     }
 }
 

@@ -112,7 +112,7 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
     <div class="flex-1 flex flex-col h-full overflow-hidden">
         <header class="h-16 bg-white shadow-sm flex items-center justify-between px-6 z-10 flex-shrink-0">
             <div class="flex items-center gap-4">
-                <button class="md:hidden text-gray-500 hover:text-gray-900">
+                <button id="mobile-menu-btn" class="md:hidden text-gray-500 hover:text-gray-900 p-2 -ml-2 rounded-lg hover:bg-slate-100 transition-colors">
                     <i data-lucide="menu" class="w-6 h-6"></i>
                 </button>
                 <div class="flex items-center">
@@ -141,7 +141,7 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
 
                     <!-- ENCABEZADO PRINCIPAL -->
                     <div id="inicio"
-                        class="bg-white rounded-2xl shadow-xl border border-slate-200 p-12 mb-10 relative overflow-hidden">
+                        class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 md:p-12 mb-10 relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-16 -mt-16"></div>
                         <div class="relative z-10">
                             <div class="flex items-center gap-3 mb-6">
@@ -164,9 +164,9 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                         class="bg-white rounded-2xl shadow-sm border border-slate-100 p-10 mb-10 group transition-all hover:border-blue-200">
                         <div class="flex items-center gap-2 mb-8">
                             <span
-                                class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-tight">Sección
+                                class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight whitespace-nowrap">Sección
                                 1</span>
-                            <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Mi Membresía de Lector
+                            <h2 class="text-xl md:text-2xl font-extrabold text-slate-800 tracking-tight">Mi Membresía de Lector
                             </h2>
                         </div>
                         <div class="text-slate-600 space-y-6">
@@ -204,9 +204,9 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                         class="bg-white rounded-2xl shadow-sm border border-slate-100 p-10 mb-10 group transition-all hover:border-emerald-200">
                         <div class="flex items-center gap-2 mb-8">
                             <span
-                                class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-tight">Sección
+                                class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight whitespace-nowrap">Sección
                                 2</span>
-                            <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Motor de Búsqueda</h2>
+                            <h2 class="text-xl md:text-2xl font-extrabold text-slate-800 tracking-tight">Motor de Búsqueda</h2>
                         </div>
                         <div class="text-slate-600 space-y-6">
                             <p class="text-base leading-relaxed">Localizar un documento es más sencillo que nunca
@@ -255,9 +255,9 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                         class="bg-white rounded-2xl shadow-sm border border-slate-100 p-10 mb-10 group transition-all hover:border-indigo-200">
                         <div class="flex items-center gap-2 mb-8">
                             <span
-                                class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-tight">Sección
+                                class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight whitespace-nowrap">Sección
                                 3</span>
-                            <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Interacción con CIATA AI
+                            <h2 class="text-xl md:text-2xl font-extrabold text-slate-800 tracking-tight">Interacción con CIATA AI
                             </h2>
                         </div>
                         <div class="relative p-8 bg-slate-900 rounded-3xl overflow-hidden mb-8">
@@ -346,47 +346,56 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                             </div>
                         </div>
                     </section>
-                    <!-- SECCIÓN 4: Colección Personal -->
                     <section id="coleccion"
-                        class="bg-white rounded-2xl shadow-sm border border-slate-100 p-10 mb-10 group transition-all hover:border-amber-200">
+                        class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-10 mb-10 group transition-all hover:border-amber-200">
                         <div class="flex items-center gap-2 mb-8">
                             <span
-                                class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-tight">Sección
+                                class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight whitespace-nowrap">Sección
                                 4</span>
-                            <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Mi Biblioteca Privada</h2>
+                            <h2 class="text-xl md:text-2xl font-extrabold text-slate-800 tracking-tight">Mi Biblioteca Privada</h2>
                         </div>
                         <div class="text-slate-600 space-y-6">
                             <p class="text-base leading-relaxed">Mantén un registro de tus estudios y guarda recursos
                                 valiosos para consultarlos después.</p>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                                <div class="space-y-4">
-                                    <div class="flex items-center gap-3">
+                                
+                            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+                                <div class="lg:col-span-3 space-y-8">
+                                    <div class="flex items-start gap-5">
                                         <div
-                                            class="w-8 h-8 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center">
-                                            <i data-lucide="star" class="w-4 h-4 fill-yellow-500"></i></div>
+                                            class="w-12 h-12 shrink-0 rounded-2xl bg-yellow-100 text-yellow-600 flex items-center justify-center shadow-sm">
+                                            <i data-lucide="star" class="w-6 h-6 fill-yellow-500"></i></div>
                                         <div>
                                             <h5 class="font-bold text-slate-900 text-sm">Mis Favoritos</h5>
-                                            <p class="text-xs text-slate-500">Documentos marcados con la estrella que
+                                            <p class="text-xs text-slate-500 leading-relaxed">Documentos marcados con la estrella que
                                                 deseas tener siempre a mano.</p>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-3">
+                                    <div class="flex items-start gap-5">
                                         <div
-                                            class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
-                                            <i data-lucide="history" class="w-4 h-4"></i></div>
+                                            class="w-12 h-12 shrink-0 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center shadow-sm">
+                                            <i data-lucide="history" class="w-6 h-6"></i></div>
                                         <div>
                                             <h5 class="font-bold text-slate-900 text-sm">Vistos Recientemente</h5>
-                                            <p class="text-xs text-slate-500">Trazabilidad automática de los últimos
+                                            <p class="text-xs text-slate-500 leading-relaxed">Trazabilidad automática de los últimos
                                                 documentos que has abierto.</p>
                                         </div>
                                     </div>
+                                    <div class="flex items-start gap-5">
+                                        <div
+                                            class="w-12 h-12 shrink-0 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center shadow-sm">
+                                            <i data-lucide="accessibility" class="w-6 h-6"></i></div>
+                                        <div>
+                                            <h5 class="font-bold text-slate-900 text-sm">Accesibilidad</h5>
+                                            <p class="text-xs text-slate-500 leading-relaxed">Activa el modo de <b>Alto Contraste</b> o <b>Texto Grande</b> para adaptar la interfaz a tus necesidades visuales.</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+                                <div class="lg:col-span-2 p-8 bg-slate-50 rounded-3xl border border-slate-100 text-center flex flex-col items-center justify-center min-h-[220px]">
                                     <i data-lucide="glasses"
-                                        class="w-12 h-12 text-blue-600 mx-auto mb-4 opacity-50"></i>
-                                    <p class="text-xs text-slate-600 italic">"La lectura es para la mente lo que el
+                                        class="w-14 h-14 text-blue-600 mx-auto mb-6 opacity-30"></i>
+                                    <p class="text-sm text-slate-600 italic leading-relaxed font-medium">"La lectura es para la mente lo que el
                                         ejercicio es para el cuerpo."</p>
+                                    <p class="text-[10px] uppercase tracking-widest text-slate-400 mt-4 font-bold">Joseph Addison</p>
                                 </div>
                             </div>
                         </div>
@@ -399,7 +408,7 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                             <p class="text-emerald-100 italic">Si tienes problemas al visualizar un documento o dudas
                                 sobre el uso de la IA, nuestro equipo te ayudará.</p>
                         </div>
-                        <a href="https://wa.me/526672644610" target="_blank"
+                        <a href="https://wa.me/526672644610?text=Hola%20buenas,%20te%20hablo%20desde%20el%20sistema%20de%20CIEEPE%20por%20qu%C3%A9%20necesito%20soporte" target="_blank"
                             class="px-8 py-4 bg-white text-emerald-600 rounded-xl font-extrabold hover:bg-gray-100 transition-all flex items-center gap-3 shadow-md">
                             <i data-lucide="message-circle" class="w-6 h-6"></i>
                             Chatear con Soporte
@@ -465,7 +474,7 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                                 </p>
                                 <p class="text-[10px] text-gray-400 mb-3 leading-relaxed">¿Dificultades técnicas o de
                                     acceso?</p>
-                                <a href="https://wa.me/526672644610" target="_blank"
+                                <a href="https://wa.me/526672644610?text=Hola%20buenas,%20te%20hablo%20desde%20el%20sistema%20de%20CIEEPE%20por%20qu%C3%A9%20necesito%20soporte" target="_blank"
                                     class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 transition-colors rounded-lg text-xs font-bold flex items-center justify-center gap-2">
                                     <i data-lucide="message-circle" class="w-4 h-4"></i>
                                     Contactar Soporte
@@ -478,15 +487,56 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
         </main>
     </div>
     <script>
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
-
         // Scrollspy Logic
         document.addEventListener('DOMContentLoaded', () => {
             const sections = document.querySelectorAll('section[id], div[id="inicio"]');
             const navLinks = document.querySelectorAll('nav a[href^="#"]');
             
+            // ============================
+            // MOBILE SIDEBAR (INDEX)
+            // ============================
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileSidebar = document.getElementById('mobile-sidebar');
+            const mobileSidebarBackdrop = document.getElementById('mobile-sidebar-backdrop');
+            const mobileSidebarPanel = document.getElementById('mobile-sidebar-panel');
+            const mobileSidebarClose = document.getElementById('mobile-sidebar-close');
+
+            function openMobileMenu() {
+                if (!mobileSidebar || !mobileSidebarPanel) return;
+                mobileSidebar.classList.remove('pointer-events-none');
+                mobileSidebarBackdrop.classList.remove('pointer-events-none');
+                mobileSidebarBackdrop.classList.remove('opacity-0');
+                mobileSidebarBackdrop.classList.add('opacity-100');
+                mobileSidebarPanel.classList.remove('-translate-x-full');
+                mobileSidebarPanel.classList.add('translate-x-0');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMobileMenu() {
+                if (!mobileSidebar || !mobileSidebarPanel) return;
+                mobileSidebarBackdrop.classList.remove('opacity-100');
+                mobileSidebarBackdrop.classList.add('opacity-0');
+                mobileSidebarPanel.classList.add('-translate-x-full');
+                mobileSidebarPanel.classList.remove('translate-x-0');
+                document.body.style.overflow = '';
+                setTimeout(() => {
+                    mobileSidebar.classList.add('pointer-events-none');
+                    mobileSidebarBackdrop.classList.add('pointer-events-none');
+                }, 300);
+            }
+
+            if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openMobileMenu);
+            if (mobileSidebarClose) mobileSidebarClose.addEventListener('click', closeMobileMenu);
+            if (mobileSidebarBackdrop) mobileSidebarBackdrop.addEventListener('click', closeMobileMenu);
+
+            // Cerrar menú al hacer clic en un enlace del índice móvil
+            const mobileLinks = mobileSidebarPanel?.querySelectorAll('a[href^="#"]');
+            mobileLinks?.forEach(link => {
+                link.addEventListener('click', () => {
+                    setTimeout(closeMobileMenu, 150);
+                });
+            });
+
             const observerOptions = {
                 rootMargin: '-10% 0px -80% 0px',
                 threshold: 0
@@ -517,8 +567,89 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
             }, observerOptions);
 
             sections.forEach(section => observer.observe(section));
+
+            // Inicializar iconos al final de todo el DOM
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
         });
     </script>
+
+    <!-- MOBILE SIDEBAR (INDEX) REPOSICIONADO -->
+    <div id="mobile-sidebar" class="fixed inset-0 z-[999] pointer-events-none transition-all duration-300">
+        <!-- Backdrop -->
+        <div id="mobile-sidebar-backdrop" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+        
+        <!-- Panel Lateral -->
+        <div id="mobile-sidebar-panel" class="absolute inset-y-0 left-0 w-80 bg-white shadow-2xl flex flex-col -translate-x-full transition-transform duration-300 pointer-events-auto border-r border-slate-100">
+            <!-- Header Sidebar -->
+            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white">
+                        <i data-lucide="list-tree" class="w-4 h-4"></i>
+                    </div>
+                    <span class="font-bold text-slate-900 text-sm tracking-tight uppercase">Guía: Secciones</span>
+                </div>
+                <button id="mobile-sidebar-close" class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- ÍNDICE MÓVIL REPLICADO -->
+            <div class="flex-grow overflow-y-auto py-6 px-4">
+                <nav class="space-y-2">
+                    <a href="#inicio"
+                        class="flex flex-col px-4 py-4 rounded-2xl transition-all bg-blue-50/50 border-l-4 border-blue-500 group">
+                        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest opacity-80 mb-1">Inicio</span>
+                        <span class="text-base font-bold text-slate-800">Bienvenida Lector</span>
+                    </a>
+                    <a href="#cuenta"
+                        class="flex flex-col px-4 py-4 rounded-2xl transition-all hover:bg-slate-50 border-l-4 border-transparent hover:border-slate-800 group">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest opacity-80 mb-1 whitespace-nowrap">Sección 1</span>
+                        <span class="text-base font-bold text-slate-800 group-hover:text-slate-900">Mi Membresía</span>
+                    </a>
+                    <a href="#busqueda"
+                        class="flex flex-col px-4 py-4 rounded-2xl transition-all hover:bg-emerald-50 border-l-4 border-transparent hover:border-emerald-500 group">
+                        <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest opacity-80 mb-1 whitespace-nowrap">Sección 2</span>
+                        <span class="text-base font-bold text-slate-800 group-hover:text-emerald-900">Motor de Búsqueda</span>
+                    </a>
+                    <a href="#ciata"
+                        class="flex flex-col px-4 py-4 rounded-2xl transition-all hover:bg-indigo-50 border-l-4 border-transparent hover:border-indigo-500 group">
+                        <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-widest opacity-80 mb-1 whitespace-nowrap">Sección 3</span>
+                        <span class="text-base font-bold text-slate-800 group-hover:text-indigo-900">Interacción AI</span>
+                    </a>
+                    <a href="#coleccion"
+                        class="flex flex-col px-4 py-4 rounded-2xl transition-all hover:bg-amber-50 border-l-4 border-transparent hover:border-amber-500 group">
+                        <span class="text-[10px] font-bold text-amber-600 uppercase tracking-widest opacity-80 mb-1 whitespace-nowrap">Sección 4</span>
+                        <span class="text-base font-bold text-slate-800 group-hover:text-amber-900">Mi Biblioteca</span>
+                    </a>
+                </nav>
+
+                <div class="mt-8 p-6 bg-slate-900 rounded-3xl text-white relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-blue-600/20 blur-2xl"></div>
+                    <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-2">Ayuda</p>
+                    <p class="text-xs text-slate-400 mb-4 leading-relaxed">¿Problemas técnicos? Chatea con nosotros.</p>
+                    <a href="https://wa.me/526672644610?text=Hola%20buenas,%20te%20hablo%20desde%20el%20sistema%20de%20CIEEPE%20por%20qu%C3%A9%20necesito%20soporte" target="_blank"
+                        class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 transition-colors rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+                        <i data-lucide="message-circle" class="w-4 h-4"></i> Chatear con Soporte
+                    </a>
+                </div>
+            </div>
+
+            <!-- Botón Cerrar Sesión inferior -->
+            <div class="p-6 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                        <?= strtoupper(substr($_SESSION['user_bib_nombre'], 0, 1)) ?>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700 truncate w-24"><?= htmlspecialchars($_SESSION['user_bib_nombre']) ?></span>
+                </div>
+                <a href="logout_biblioteca.php" class="p-2 text-slate-400 hover:text-red-600 transition-colors">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

@@ -344,41 +344,10 @@ if (count($sugerenciasPopulares) < 4) {
                         </div>
                     <?php endif; ?>
                 </div>
-                    <button id="mobile-menu-btn" class="md:hidden focus:outline-none text-gray-700">
-                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    <button id="mobile-menu-btn" class="md:hidden p-2 -mr-2 text-slate-600 hover:text-blue-900 focus:outline-none transition-colors">
+                        <i data-lucide="menu" class="w-7 h-7"></i>
                     </button>
-                    <!-- Menú Móvil -->
-                    <div id="mobile-menu"
-                        class="hidden md:hidden bg-white shadow-lg absolute top-full left-0 w-full py-4 px-6 flex flex-col space-y-4 text-gray-800 border-t border-gray-100">
-                        <a href="index.html#inicio" class="font-medium">Inicio</a>
-                        <a href="proyectos.php" class="font-medium">Proyectos</a>
-                        <a href="noticias.php" class="font-medium">Noticias</a>
-                        <a href="investigadores.php" class="font-medium">Equipo</a>
-                        <a href="biblioteca.php" class="font-medium text-blue-600">CIATA</a>
-                        <?php if (isset($_SESSION['user_bib_rol']) && $_SESSION['user_bib_rol'] === 'admin'): ?>
-                            <a href="admin_biblioteca.php" class="font-medium text-gray-700">Administración</a>
-                        <?php endif; ?>
-                        <?php if (isset($_SESSION['user_bib_rol']) && in_array($_SESSION['user_bib_rol'], ['admin', 'investigador'])): ?>
-                            <a href="subir_articulo.php" class="font-bold text-emerald-600">Añadir Artículo</a>
-                        <?php endif; ?>
-
-                        <?php if ($isLoggedBib): ?>
-                            <div class="pt-4 border-t border-slate-100 flex flex-col space-y-4">
-                                <p class="text-sm font-bold text-slate-900">Hola, <?= htmlspecialchars($userNameBib) ?></p>
-                                <a href="logout_biblioteca.php?redirect=biblioteca.php" class="text-red-600 font-bold flex items-center gap-2">
-                                    <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar Sesión
-                                </a>
-                                <a href="admin_manual_usuario.php" class="text-blue-600 font-bold flex items-center gap-2">
-                                    <i data-lucide="help-circle" class="w-4 h-4"></i> Ayuda
-                                </a>
-                            </div>
-                        <?php else: ?>
-                            <div class="pt-4 border-t border-slate-100 flex flex-col space-y-3">
-                                <a href="login_biblioteca.php?redirect=biblioteca.php" class="font-bold text-blue-900">Iniciar Sesión</a>
-                                <a href="registro_biblioteca.php" class="font-bold text-blue-900">Registrarse</a>
-                            </div>
-                        <?php endif; ?>
-                    </div>
+                    <!-- Menú Móvil Lateral (Sidebar) -->
             </nav>
         </div>
     </header>
@@ -473,60 +442,52 @@ if (count($sugerenciasPopulares) < 4) {
             </div>
         </section>
     </main>
-    <footer class="bg-gray-900 text-white py-12 border-t border-gray-800">
-        <div class="container mx-auto px-4 md:px-8">
-            <div class="grid md:grid-cols-4 gap-8 mb-8">
-                <div class="col-span-1 md:col-span-2">
-                    <h3 class="text-2xl font-bold mb-4">CIEEPE | ENEES</h3>
-                    <p class="text-gray-400 max-w-sm mb-6">
-                        Centro de Investigación de Educación Especial y Políticas Educativas.
-                        Generando conocimiento para una educación más inclusiva y justa.
+    <footer class="bg-slate-950 pt-20 pb-10 text-white border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <img src="<?= $site_logo ?>" alt="CIEEPE" class="h-12 w-auto brightness-0 invert">
+                        <div>
+                            <h3 class="text-xl font-bold tracking-tight">CIEEPE</h3>
+                            <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Excelencia Educativa</p>
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-xs">
+                        Impulsando la investigación y formación docente en educación especial para transformar el futuro de Sinaloa.
                     </p>
-                    <div class="flex space-x-4">
-                        <div
-                            class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors cursor-pointer">
-                            <i data-lucide="globe" class="w-5 h-5"></i>
-                        </div>
-                        <div
-                            class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors cursor-pointer">
-                            <i data-lucide="mail" class="w-5 h-5"></i>
-                        </div>
+                    <div class="flex items-center gap-3">
+                        <a href="index.html" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-indigo-600 transition-all hover:scale-110 shadow-lg" title="Inicio"><i data-lucide="globe" class="w-5 h-5"></i></a>
+                        <a href="index.html#contacto" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-emerald-600 transition-all hover:scale-110 shadow-lg" title="Contacto"><i data-lucide="mail" class="w-5 h-5"></i></a>
                     </div>
                 </div>
                 <div>
-                    <h4 class="text-lg font-semibold mb-4 text-gray-200">Enlaces Rápidos</h4>
-                    <ul class="space-y-2">
-                        <li><a href="index.html#inicio"
-                                class="text-gray-400 hover:text-white transition-colors">Inicio</a></li>
-                        <li><a href="index.html#nosotros"
-                                class="text-gray-400 hover:text-white transition-colors">Nosotros</a></li>
-                        <li><a href="index.html#investigacion"
-                                class="text-gray-400 hover:text-white transition-colors">Líneas de Investigación</a>
-                        </li>
-                        <li><a href="proyectos.php"
-                                class="text-gray-400 hover:text-white transition-colors">Proyectos</a></li>
-                        <li><a href="noticias.php" class="text-gray-400 hover:text-white transition-colors">Noticias</a>
-                        </li>
-                        <li><a href="biblioteca.php"
-                                class="text-blue-400 hover:text-white transition-colors font-medium">Biblioteca Virtual
-                                (IA)</a></li>
-                        <li><a href="investigadores.php"
-                                class="text-gray-400 hover:text-white transition-colors">Equipo</a></li>
+                    <h4 class="text-xs font-bold uppercase tracking-widest text-white mb-8">Navegación</h4>
+                    <ul class="space-y-4">
+                        <li><a href="index.html" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-2 group"><span class="w-1 h-1 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span> Inicio</a></li>
+                        <li><a href="proyectos.php" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-2 group"><span class="w-1 h-1 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span> Proyectos</a></li>
+                        <li><a href="noticias.php" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-2 group"><span class="w-1 h-1 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span> Noticias</a></li>
+                        <li><a href="investigadores.php" class="text-slate-400 hover:text-white transition-colors text-sm flex items-center gap-2 group"><span class="w-1 h-1 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span> Investigadores</a></li>
+                        <li><a href="biblioteca.php" class="text-blue-400 hover:text-white transition-colors text-sm font-bold flex items-center gap-2 group"><span class="w-1 h-1 bg-blue-400 rounded-full opacity-100"></span> Biblioteca Virtual</a></li>
                     </ul>
                 </div>
-                <div>
-                    <h4 class="text-lg font-semibold mb-4 text-gray-200">Legal</h4>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Aviso de Privacidad</a>
-                        </li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Transparencia</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">ENEES Oficial</a></li>
-                    </ul>
+                <div class="bg-white/5 rounded-3xl p-8 border border-white/5">
+                    <h4 class="text-xs font-bold uppercase tracking-widest text-white mb-6">Ubicación</h4>
+                    <address class="not-italic space-y-4">
+                        <div class="flex gap-4">
+                            <i data-lucide="map-pin" class="w-5 h-5 text-blue-500 shrink-0"></i>
+                            <p class="text-slate-400 text-sm leading-relaxed">
+                                Carretera Imala Km 2 Col. Los Ángeles, <br>
+                                C.P. 80014 Culiacán Rosales, Sinaloa, México.
+                            </p>
+                        </div>
+                    </address>
                 </div>
             </div>
-            <div class="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
-                <p>&copy; <span id="footerYear"></span> CIEEPE - Escuela Normal de Especialización del Estado de
-                    Sinaloa. Todos los derechos reservados.</p>
+            <div class="border-t border-white/5 pt-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-slate-500 text-xs font-medium">
+                    &copy; <span id="footerYear"></span> CIEEPE - Escuela Normal de Especialización del Estado de Sinaloa.
+                </p>
             </div>
         </div>
     </footer>
@@ -1319,9 +1280,60 @@ if (count($sugerenciasPopulares) < 4) {
                         if (typeof renderRecent === 'function') renderRecent();
                         if (typeof lucide !== 'undefined') lucide.createIcons();
 
+                        // -- Mobile Sidebar Menu Toggle --
+                        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+                        const mobileMenuClose = document.getElementById('mobile-menu-close');
+                        const menuContainer = document.getElementById('mobile-menu-container');
+                        const menuBackdrop = document.getElementById('mobile-menu-backdrop');
+                        const menuPanel = document.getElementById('mobile-menu-panel');
+
+                        function openMenu() {
+                            if (!menuContainer || !menuPanel || !menuBackdrop) return;
+                            menuContainer.classList.remove('pointer-events-none');
+                            menuBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+                            menuBackdrop.classList.add('opacity-100', 'pointer-events-auto');
+                            menuPanel.classList.remove('translate-x-full');
+                            menuPanel.classList.add('translate-x-0');
+                            document.body.style.overflow = 'hidden';
+                        }
+
+                        function closeMenu() {
+                            if (!menuContainer || !menuPanel || !menuBackdrop) return;
+                            menuBackdrop.classList.add('opacity-0', 'pointer-events-none');
+                            menuBackdrop.classList.remove('opacity-100', 'pointer-events-auto');
+                            menuPanel.classList.add('translate-x-full');
+                            menuPanel.classList.remove('translate-x-0');
+                            document.body.style.overflow = '';
+                            setTimeout(() => {
+                                menuContainer.classList.add('pointer-events-none');
+                            }, 300);
+                        }
+
+                        if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openMenu);
+                        if (mobileMenuClose) mobileMenuClose.addEventListener('click', closeMenu);
+                        if (menuBackdrop) menuBackdrop.addEventListener('click', closeMenu);
+                        // Cerrar al hacer clic en enlaces
+                        if (menuPanel) {
+                            menuPanel.querySelectorAll('a').forEach(link => {
+                                link.addEventListener('click', closeMenu);
+                            });
+                        }
+
                         const fy = document.getElementById('footerYear');
                         if (fy) fy.textContent = new Date().getFullYear();
                     });
+
+                    // Función para restringir opciones de administración a Laptops/PC
+                    function verificarAccesoAdmin(e, url) {
+                        const isSmallScreen = window.innerWidth < 1024;
+                        if (isSmallScreen) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            alert("⚠️ Esta función requiere una pantalla más grande (Laptop o PC) para trabajar de manera óptima.\n\nPor favor, accede desde un equipo de escritorio para gestionar contenido.");
+                            return false;
+                        }
+                        window.location.href = url;
+                    }
     </script>
     <!-- ============================================== -->
     <!-- ACCESSIBILITY FLOATING BUTTON + PANEL          -->
@@ -1339,70 +1351,200 @@ if (count($sugerenciasPopulares) < 4) {
         html.a11y-contrast main,
         html.a11y-contrast .bg-white,
         html.a11y-contrast .bg-slate-50,
-        html.a11y-contrast .bg-slate-100 {
-            background-color: #111 !important;
+        html.a11y-contrast .bg-slate-100,
+        html.a11y-contrast div,
+        html.a11y-contrast aside,
+        html.a11y-contrast nav {
+            background-color: #000 !important;
             color: #fff !important;
-            border-color: #555 !important;
+            border-color: #fff !important;
+            background-image: none !important;
+            box-shadow: none !important;
         }
 
+        /* Forzar títulos y textos a blanco puro con máxima prioridad */
         html.a11y-contrast h1,
         html.a11y-contrast h2,
         html.a11y-contrast h3,
+        html.a11y-contrast h4,
+        html.a11y-contrast h5,
+        html.a11y-contrast h6,
         html.a11y-contrast p,
         html.a11y-contrast span,
         html.a11y-contrast a,
+        html.a11y-contrast li,
         html.a11y-contrast label,
-        html.a11y-contrast li {
+        html.a11y-contrast i,
+        html.a11y-contrast small,
+        html.a11y-contrast strong,
+        html.a11y-contrast code,
+        html.a11y-contrast .serif {
             color: #fff !important;
+            text-shadow: none !important;
+            background-clip: unset !important;
+            -webkit-background-clip: unset !important;
+            -webkit-text-fill-color: #fff !important;
+            background-color: transparent !important;
+        }
+
+        /* Asegurar que contenedores de iconos no bloqueen bordes */
+        html.a11y-contrast .pointer-events-none,
+        html.a11y-contrast .absolute {
+            background-color: transparent !important;
+        }
+
+        html.a11y-contrast a {
+            text-decoration: underline !important;
+        }
+
+        html.a11y-contrast button:not(.a11y-toggle-btn) {
+            background-color: #000 !important;
+            color: #fff !important;
+            border: 2px solid #fff !important;
         }
 
         html.a11y-contrast input,
         html.a11y-contrast textarea {
-            background-color: #222 !important;
+            background-color: #000 !important;
             color: #fff !important;
-            border-color: #777 !important;
+            border: 2px solid #fff !important;
         }
 
         html.a11y-contrast .book-card {
-            background-color: #1a1a1a !important;
-            border-color: #444 !important;
+            background-color: #000 !important;
+            border: 2px solid #fff !important;
         }
 
-        html.a11y-contrast img {
-            filter: brightness(0.85) contrast(1.1);
+        /* Excepción para Logo CIATA: No debe cambiar en alto contraste */
+        html.a11y-contrast #ciata-landing h2,
+        html.a11y-contrast #ciata-landing p {
+            background-clip: text !important;
+            -webkit-background-clip: text !important;
+            color: transparent !important;
+            -webkit-text-fill-color: transparent !important;
+            background-image: linear-gradient(to right, #bfdbfe, #fff, #e9d5ff) !important;
         }
 
-        /* Large text */
+        html.a11y-contrast #ciata-modal-inner {
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #1e3a8a) !important;
+        }
+
+        /* Large text adjustments */
         html.a11y-large body,
         html.a11y-large p,
         html.a11y-large span,
         html.a11y-large li,
         html.a11y-large a {
             font-size: 1.15rem !important;
-            line-height: 1.8 !important;
+            line-height: normal !important;
         }
 
-        html.a11y-large h1 {
-            font-size: 2.6rem !important;
+        html.a11y-large h1 { font-size: 2.6rem !important; }
+        html.a11y-large h2 { font-size: 2.2rem !important; }
+        html.a11y-large h3 { font-size: 1.5rem !important; }
+        html.a11y-large h4 { font-size: 1.2rem !important; }
+
+        /* Navbar flexible for large text */
+        html.a11y-large header .h-20 {
+            height: auto !important;
+            min-height: 5rem !important;
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
         }
 
-        html.a11y-large h2 {
-            font-size: 2.2rem !important;
+        html.a11y-large nav .space-x-6,
+        html.a11y-large nav .lg\:space-x-8 {
+            gap: 0.75rem !important;
+            margin-right: 1rem !important;
+            flex-wrap: wrap !important;
+            justify-content: flex-end !important;
         }
 
-        html.a11y-large h3 {
-            font-size: 1.5rem !important;
-        }
-
-        html.a11y-large input,
-        html.a11y-large textarea,
-        html.a11y-large button {
-            font-size: 1.1rem !important;
+        html.a11y-large .nav-link {
+            font-size: 0.95rem !important;
+            white-space: nowrap !important;
         }
 
         /* Panel */
         #a11y-panel {
             transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        /* Título del panel en contraste */
+        html.a11y-contrast #a11y-panel p {
+            color: #fff !important;
+            opacity: 1 !important;
+        }
+
+        html.a11y-contrast #a11y-panel {
+            background-color: #000 !important;
+            border: 2px solid #fff !important;
+            box-shadow: 0 0 15px rgba(255,255,255,0.2) !important;
+        }
+
+        html.a11y-contrast .a11y-toggle-btn {
+            background-color: #000 !important;
+            color: #fff !important;
+            border: 2px solid #fff !important;
+        }
+
+        html.a11y-contrast .a11y-toggle-btn span {
+            color: #fff !important;
+        }
+
+        /* Switch (Pill) en contraste */
+        html.a11y-contrast .a11y-pill {
+            background-color: #444 !important;
+            border: 1px solid #fff !important;
+        }
+
+        html.a11y-contrast .a11y-toggle-btn.active .a11y-pill {
+            background-color: #fff !important;
+            border-color: #000 !important;
+        }
+
+        html.a11y-contrast .a11y-pill::after {
+            background-color: #fff !important;
+        }
+
+        html.a11y-contrast .a11y-toggle-btn.active .a11y-pill::after {
+            background-color: #000 !important;
+        }
+
+        html.a11y-contrast .a11y-toggle-btn.active,
+        html.a11y-contrast .a11y-toggle-btn.active span,
+        html.a11y-contrast .a11y-toggle-btn.active label {
+            background-color: #fff !important;
+            color: #000 !important;
+            -webkit-text-fill-color: #000 !important;
+        }
+
+        html.a11y-contrast .a11y-toggle-btn.active .a11y-pill {
+            background-color: #fff !important;
+            border-color: #000 !important;
+        }
+
+        /* Accesibilidad: Menú Móvil Sidebar */
+        html.a11y-contrast #mobile-menu-panel,
+        html.a11y-contrast #mobile-menu-panel div {
+            background-color: #000 !important;
+            border-color: #fff !important;
+        }
+
+        html.a11y-contrast #mobile-menu-backdrop {
+            background-color: rgba(0,0,0,0.85) !important;
+            backdrop-filter: none !important;
+        }
+
+        html.a11y-large #mobile-menu-panel {
+            width: 85% !important;
+            max-width: 400px !important;
+        }
+
+        html.a11y-large #mobile-menu-panel a {
+            font-size: 1.1rem !important;
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
         }
 
         #a11y-panel.a11y-hidden {
@@ -1802,7 +1944,7 @@ if (count($sugerenciasPopulares) < 4) {
         </div>
     </div>
     <!-- Toast Container -->
-    <div id="toast-container" class="fixed bottom-8 right-8 z-[200] flex flex-col gap-3"></div>
+    <div id="toast-container" class="fixed bottom-8 right-8 z-[1000] flex flex-col gap-3"></div>
 
     <style>
         .toast-notification {
@@ -1903,6 +2045,104 @@ if (count($sugerenciasPopulares) < 4) {
             document.body.removeChild(textArea);
         }
     </script>
-</body>
+    <!-- Menú Móvil Lateral (Sidebar) REPOSICIONADO -->
+    <div id="mobile-menu-container" class="fixed inset-0 z-[999] pointer-events-none overflow-hidden">
+        <!-- Backdrop -->
+        <div id="mobile-menu-backdrop" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+        
+        <!-- Panel Lateral -->
+        <div id="mobile-menu-panel" class="absolute inset-y-0 right-0 w-80 bg-white shadow-2xl flex flex-col translate-x-full transition-transform duration-300 pointer-events-auto border-l border-slate-100">
+            <!-- Header del Sidebar -->
+            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-blue-900 rounded-lg flex items-center justify-center text-white">
+                        <i data-lucide="book-open" class="w-4 h-4"></i>
+                    </div>
+                    <span class="font-bold text-slate-900 text-sm tracking-tight uppercase">CIEEPE Menú</span>
+                </div>
+                <button id="mobile-menu-close" class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
 
+            <!-- Enlaces de Navegación -->
+            <div class="flex-grow overflow-y-auto py-6 px-6 space-y-1">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4 px-2">Navegación</p>
+                <a href="index.html#inicio" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-semibold transition-all">
+                    <i data-lucide="home" class="w-5 h-5 opacity-60"></i> Inicio
+                </a>
+                <a href="proyectos.php" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-semibold transition-all">
+                    <i data-lucide="folder-kanban" class="w-5 h-5 opacity-60"></i> Proyectos
+                </a>
+                <a href="noticias.php" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-semibold transition-all">
+                    <i data-lucide="newspaper" class="w-5 h-5 opacity-60"></i> Noticias
+                </a>
+                <a href="investigadores.php" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-600 font-semibold transition-all">
+                    <i data-lucide="users" class="w-5 h-5 opacity-60"></i> Nuestro Equipo
+                </a>
+                <a href="biblioteca.php" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 text-blue-700 font-bold transition-all border border-blue-100/50">
+                    <i data-lucide="library" class="w-5 h-5"></i> CIATA Virtual
+                </a>
+
+                <?php if (isset($_SESSION['user_bib_rol']) && in_array($_SESSION['user_bib_rol'], ['admin', 'investigador'])): ?>
+                    <div class="pt-4 mt-4 border-t border-slate-100">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4 px-2">Gestión y Contenido</p>
+                        
+                        <?php if ($_SESSION['user_bib_rol'] === 'admin'): ?>
+                        <a href="admin_biblioteca.php" onclick="verificarAccesoAdmin(event, 'admin_biblioteca.php')" 
+                            class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-900 font-bold transition-all group">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="settings" class="w-5 h-5 text-slate-500 group-hover:text-blue-600 shrink-0"></i> 
+                                <span class="leading-tight">Panel Administrativo</span>
+                            </div>
+                            <span class="text-[8px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full uppercase tracking-tighter shrink-0 whitespace-nowrap">Solo Laptop</span>
+                        </a>
+                        <?php endif; ?>
+
+                        <a href="subir_articulo.php" onclick="verificarAccesoAdmin(event, 'subir_articulo.php')" 
+                            class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-emerald-700 font-bold transition-all group">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-500 group-hover:text-emerald-600 shrink-0"></i> 
+                                <span class="leading-tight">Añadir Artículo</span>
+                            </div>
+                            <span class="text-[8px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded-full uppercase tracking-tighter shrink-0 whitespace-nowrap">Solo Laptop</span>
+                        </a>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- Footer del Sidebar (Login/User) -->
+            <div class="p-6 border-t border-slate-100 bg-slate-50/50">
+                <?php if ($isLoggedBib): ?>
+                    <div class="flex items-center gap-4 mb-6 px-2">
+                        <div class="w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center text-white font-bold shadow-md">
+                            <?= strtoupper(substr($userNameBib, 0, 1)) ?>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Cuenta Activa</p>
+                            <p class="text-sm font-bold text-slate-900 truncate max-w-[160px]"><?= htmlspecialchars($userNameBib) ?></p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="admin_manual_usuario.php" class="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+                            <i data-lucide="help-circle" class="w-4 h-4"></i> Ayuda
+                        </a>
+                        <a href="logout_biblioteca.php?redirect=biblioteca.php" class="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-red-100 bg-red-50 text-xs font-bold text-red-600 hover:bg-red-100 transition-colors">
+                            <i data-lucide="log-out" class="w-4 h-4"></i> Salir
+                        </a>
+                    </div>
+                <?php else: ?>
+                    <div class="flex flex-col gap-3">
+                        <a href="login_biblioteca.php?redirect=biblioteca.php" class="flex items-center justify-center gap-2 py-3 rounded-xl border border-blue-900 text-sm font-bold text-blue-900 hover:bg-blue-50 transition-colors">
+                            <i data-lucide="user" class="w-4 h-4"></i> Iniciar Sesión
+                        </a>
+                        <a href="registro_biblioteca.php" class="flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-900 text-sm font-bold text-white hover:bg-blue-800 transition-colors shadow-lg shadow-blue-900/20">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i> Crear Cuenta
+                        </a>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</body>
 </html>

@@ -313,7 +313,7 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                             <div class="space-y-3">
                                 <div class="border border-slate-100 p-4 rounded-xl hover:bg-slate-50 transition-all">
                                     <h5 class="text-sm font-bold text-slate-900 mb-1 flex items-center"><i data-lucide="file-text" class="w-4 h-4 text-blue-500 mr-2"></i> Artículo Científico</h5>
-                                    <p class="text-xs text-slate-500">Solicita datos técnicos como: Nombre de la Revista, Volumen, ISSN y el identificador DOI.</p>
+                                    <p class="text-xs text-slate-500">Solicita datos técnicos como: Nombre de la Revista, ISSN y el identificador DOI.</p>
                                 </div>
                                 <div class="border border-slate-100 p-4 rounded-xl hover:bg-slate-50 transition-all">
                                     <h5 class="text-sm font-bold text-slate-900 mb-1 flex items-center"><i data-lucide="graduation-cap" class="w-4 h-4 text-emerald-500 mr-2"></i> Tesis Académica</h5>
@@ -340,7 +340,7 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                             <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Mis documentos</h2>
                         </div>
                         <div class="text-slate-600 space-y-6">
-                            <p class="text-base leading-relaxed">Este módulo es tu inventario personal de investigación. Aquí puedes gestionar, buscar y monitorear el estado de cada uno de tus archivos cargados.</p>
+                            <p class="text-base leading-relaxed">Este módulo es tu inventario personal de investigación. Aquí puedes gestionar, buscar y monitorear el estado de cada uno de tus archivos cargados. Además, puedes iniciar la carga de un nuevo material presionando el botón <strong class="text-emerald-600 uppercase tracking-tighter">"Añadir Nuevo"</strong> ubicado sobre la tabla de registros.</p>
                             
                             <div class="space-y-6">
                                 <!-- Búsqueda en Tiempo Real -->
@@ -420,7 +420,7 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                             <h2 class="text-2xl font-bold mb-2">¿Necesitas ayuda con el acceso?</h2>
                             <p class="text-emerald-100 italic">Si tienes problemas al visualizar un documento o dudas sobre el uso de la IA, nuestro equipo te ayudará.</p>
                         </div>
-                        <a href="https://wa.me/526672644610" target="_blank"
+                        <a href="https://wa.me/526672644610?text=Hola%20buenas,%20te%20hablo%20desde%20el%20sistema%20de%20CIEEPE%20por%20qu%C3%A9%20necesito%20soporte" target="_blank"
                             class="px-8 py-4 bg-white text-emerald-600 rounded-xl font-extrabold hover:bg-gray-100 transition-all flex items-center gap-3 shadow-md">
                             <i data-lucide="message-circle" class="w-6 h-6"></i>
                             Chatear con Soporte
@@ -468,7 +468,7 @@ $inactiveClass = "text-gray-300 hover:bg-gray-800 hover:text-white border-l-4 bo
                             <div class="bg-gray-900 rounded-xl p-4 text-white">
                                 <p class="text-xs font-bold text-emerald-400 uppercase mb-2">Ayuda Directa</p>
                                 <p class="text-[10px] text-gray-400 mb-3 leading-relaxed">¿Dudas sobre la publicación?</p>
-                                <a href="https://wa.me/526672644610" target="_blank" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 transition-colors rounded-lg text-xs font-bold flex items-center justify-center gap-2">
+                                <a href="https://wa.me/526672644610?text=Hola%20buenas,%20te%20hablo%20desde%20el%20sistema%20de%20CIEEPE%20por%20qu%C3%A9%20necesito%20soporte" target="_blank" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 transition-colors rounded-lg text-xs font-bold flex items-center justify-center gap-2">
                                     <i data-lucide="message-circle" class="w-4 h-4"></i>
                                     Contactar Soporte
                                 </a>
