@@ -1010,7 +1010,7 @@ if (!isset($_SESSION['user_id'])) {
                 <h2 class="text-2xl font-bold mb-2">¿Necesitas ayuda adicional?</h2>
                 <p class="text-blue-100">Si encuentras algún problema o tienes dudas, contacta a soporte por WhatsApp.</p>
             </div>
-            <a href="https://wa.me/526672644610" target="_blank" class="px-8 py-4 bg-white text-blue-600 rounded-xl font-extrabold hover:bg-gray-100 transition-all flex items-center gap-3 shadow-md">
+            <a href="https://wa.me/526672644610?text=Hola%20buenas,%20te%20hablo%20desde%20el%20sistema%20de%20CIEEPE%20por%20qu%C3%A9%20necesito%20soporte" target="_blank" class="px-8 py-4 bg-white text-blue-600 rounded-xl font-extrabold hover:bg-gray-100 transition-all flex items-center gap-3 shadow-md">
                 <i data-lucide="message-circle" class="w-6 h-6"></i>
                 Chatear con Soporte
             </a>
@@ -1104,7 +1104,7 @@ if (!isset($_SESSION['user_id'])) {
                 <div class="bg-gray-900 rounded-xl p-4 text-white">
                     <p class="text-xs font-bold text-blue-400 uppercase mb-2">Ayuda Directa</p>
                     <p class="text-[10px] text-gray-400 mb-3 leading-relaxed">¿Tienes dudas sobre una función específica?</p>
-                    <a href="https://wa.me/526672644610" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 transition-colors rounded-lg text-xs font-bold flex items-center justify-center gap-2">
+                    <a href="https://wa.me/526672644610?text=Hola%20buenas,%20te%20hablo%20desde%20el%20sistema%20de%20CIEEPE%20por%20qu%C3%A9%20necesito%20soporte" target="_blank" class="w-full py-2 bg-blue-600 hover:bg-blue-700 transition-colors rounded-lg text-xs font-bold flex items-center justify-center gap-2">
                         <i data-lucide="message-circle" class="w-4 h-4"></i>
                         Contactar Soporte
                     </a>

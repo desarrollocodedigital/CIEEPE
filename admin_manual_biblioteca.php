@@ -324,6 +324,7 @@
                         <p class="text-sm text-slate-600 leading-relaxed">Visualización del contenido original del archivo en un entorno encapsulado.</p>
                         <ul class="mt-3 space-y-2 text-xs text-slate-500 list-disc list-inside">
                             <li><strong>Pre-visualización:</strong> Acceso inmediato al PDF enviado por los investigadores.</li>
+                            <li><strong>Descarga:</strong> Posibilidad de descargar el archivo original para su revisión local o resguardo.</li>
                             <li><strong>Auditoría:</strong> Corrobora la calidad del contenido para la aprobación de divulgación en el portal principal.</li>
                         </ul>
                     </div>
@@ -519,7 +520,7 @@
                 <h2 class="text-2xl font-bold mb-2">¿Necesitas ayuda con la gestión?</h2>
                 <p class="text-emerald-100 italic">Si tienes problemas con la aprobación de documentos o la administración de usuarios, estamos para apoyarte.</p>
             </div>
-            <a href="https://wa.me/526672644610" target="_blank"
+            <a href="https://wa.me/526672644610?text=Hola%20buenas,%20te%20hablo%20desde%20el%20sistema%20de%20CIEEPE%20por%20qu%C3%A9%20necesito%20soporte" target="_blank"
                 class="px-8 py-4 bg-white text-emerald-600 rounded-xl font-extrabold hover:bg-gray-100 transition-all flex items-center gap-3 shadow-md">
                 <i data-lucide="message-circle" class="w-6 h-6"></i>
                 Chatear con Soporte
@@ -583,7 +584,7 @@
                 <div class="bg-gray-900 rounded-xl p-4 text-white">
                     <p class="text-xs font-bold text-emerald-400 uppercase mb-2">Ayuda Directa</p>
                     <p class="text-[10px] text-gray-400 mb-3 leading-relaxed">¿Dudas sobre la gestión académica?</p>
-                    <a href="https://wa.me/526672644610" target="_blank" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 transition-colors rounded-lg text-xs font-bold flex items-center justify-center gap-2">
+                    <a href="https://wa.me/526672644610?text=Hola%20buenas,%20te%20hablo%20desde%20el%20sistema%20de%20CIEEPE%20por%20qu%C3%A9%20necesito%20soporte" target="_blank" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 transition-colors rounded-lg text-xs font-bold flex items-center justify-center gap-2">
                         <i data-lucide="message-circle" class="w-4 h-4"></i>
                         Contactar Soporte
                     </a>
